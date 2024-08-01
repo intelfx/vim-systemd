@@ -195,7 +195,8 @@ syn keyword sdMountFlags    contained nextgroup=sdErr shared slave private
 syn match   sdRlimit        contained nextgroup=sdErr /\<\%(\d\+\|infinity\)\>/
 syn keyword sdSecureBits    contained nextgroup=sdErr keep-caps keep-caps-locked noroot noroot-locked no-setuid-fixup no-setuid-fixup-locked
 
-" TODO: which section does this come from?
+" These are also shared by [Service|Socket|Mount|Swap], although they're not
+" listed in systemd.exec(5)
 syn match sdExecKey  contained /^TimeoutSec=/ nextgroup=sdDuration,sdErr
 
 " Process killing options for [Service|Socket|Mount|Swap|Scope] {{{1
@@ -234,7 +235,8 @@ syn region sdServiceBlock matchgroup=sdHeader start=/^\[Service\]/ end=/^\[/me=e
 syn match sdServiceKey contained /^BusName=/
 syn match sdServiceKey contained /^\%(RemainAfterExit\|GuessMainPID\|PermissionsStartOnly\|RootDirectoryStartOnly\|NonBlocking\|ControlGroupModify\)=/ nextgroup=sdBool,sdErr
 syn match sdServiceKey contained /^\%(SysVStartPriority\|FsckPassNo\)=/ nextgroup=sdUInt,sdErr
-syn match sdServiceKey contained /^\%(Restart\|Timeout\|TimeoutStart\|TimeoutStop\|TimeoutAbort\|Watchdog\|RuntimeMax\)Sec=/ nextgroup=sdDuration,sdErr
+syn match sdServiceKey contained /^\%(Restart\|Watchdog\|RuntimeMax\)Sec=/ nextgroup=sdDuration,sdErr
+syn match sdServiceKey contained /^Timeout\%(\|Start\|Stop\|Abort\)Sec=/ nextgroup=sdDuration,sdErr
 syn match sdServiceKey contained /^Sockets=/ nextgroup=sdUnitList
 syn match sdServiceKey contained /^PIDFile=/ nextgroup=sdFilename,sdErr
 syn match sdServiceKey contained /^Type=/ nextgroup=sdServiceType,sdErr
