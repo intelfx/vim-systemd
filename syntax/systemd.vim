@@ -118,8 +118,8 @@ syn match sdDocUri         contained /\%(https\=:\/\/\|file:\|info:\|man:\)\S\+\
 " === 3. Common flag types ===
 
 syn match sdConditionFlag  contained /[!|]/
-syn match sdExecFlag       contained /-\=@\=/ nextgroup=sdExecFile,sdErr
-syn match sdEnvDashFlag    contained /-/ nextgroup=sdFilename,sdErr
+syn match sdExecFlag       contained /[-@:|+!]/
+syn match sdDashFlag       contained /-/
 
 " === 4. Voluminous keyword lists ===
 
@@ -209,8 +209,9 @@ syn match   sdControllerList contained /.*/ contains=sdControllerName,sdErrItem
 " (for [Service|Socket|Mount|Swap])
 " see systemd.exec(5)
 
-syn match sdExecKey contained /^Exec\%(Start\%(Pre\|Post\|\)\|Reload\|Stop\|StopPost\|Condition\)=/ nextgroup=sdExecFlag,sdExecFile,sdErr
-syn match sdExecKey contained /^\%(WorkingDirectory\|RootDirectory\|TTYPath\|RootImage\)=/ nextgroup=sdFilename,sdErr
+syn match sdExecKey contained /^Exec\%(Start\%(Pre\|Post\|\)\|Reload\|Stop\|StopPost\|Condition\)=[-@:|+!]*/ contains=sdExecFlag nextgroup=sdExecFile,sdErr
+syn match sdExecKey contained /^WorkingDirectory=-\=/ contains=sdDashFlag nextgroup=sdFilename,sdErr
+syn match sdExecKey contained /^\%(RootDirectory\|TTYPath\|RootImage\)=/ nextgroup=sdFilename,sdErr
 syn match sdExecKey contained /^\%(Runtime\|State\|Cache\|Logs\|Configuration\)Directory=/ nextgroup=sdFilename,sdErr
 syn match sdExecKey contained /^\%(Runtime\|State\|Cache\|Logs\|Configuration\)DirectoryMode=/ nextgroup=sdOctal,sdErr
 syn match sdExecKey contained /^User=/ nextgroup=sdUser,sdErr
@@ -239,7 +240,7 @@ syn match sdExecKey contained /^CPUSchedulingPolicy=/ nextgroup=sdCPUSchedPol,sd
 syn match sdExecKey contained /^MountFlags=/ nextgroup=sdMountFlags,sdErr
 syn match sdExecKey contained /^\%(IgnoreSIGPIPE\|MemoryDenyWriteExecute\)=/ nextgroup=sdBool,sdErr
 syn match sdExecKey contained /^Environment=/ nextgroup=sdEnvDefs
-syn match sdExecKey contained /^EnvironmentFile=-\=/ contains=sdEnvDashFlag nextgroup=sdFilename,sdErr
+syn match sdExecKey contained /^EnvironmentFile=-\=/ contains=sdDashFlag nextgroup=sdFilename,sdErr
 " These are also shared by [Service|Socket|Mount|Swap], although they're not
 " listed in systemd.exec(5)
 syn match sdExecKey contained /^TimeoutSec=/ nextgroup=sdDuration,sdErr
@@ -587,7 +588,7 @@ hi def link sdErrno             sdValue
 " --- Symbol/flag links ---
 hi def link sdExecFlag          sdSymbol
 hi def link sdConditionFlag     sdSymbol
-hi def link sdEnvDashFlag       sdSymbol
+hi def link sdDashFlag          sdSymbol
 hi def link sdInvertFlag        sdSymbol
 hi def link sdCapOps            sdSymbol
 
