@@ -360,7 +360,7 @@ syn keyword sdNamespace       contained nextgroup=sdErr cgroup ipc net mnt pid u
 " (for [Service|Socket|Mount|Swap|Scope])
 " see systemd.kill(5)
 
-syn match sdKillKey  contained /^KillSignal=/ nextgroup=sdSignal,sdErr
+syn match sdKillKey  contained /^\%(KillSignal\|RestartKillSignal\|FinalKillSignal\|WatchdogSignal\)=/ nextgroup=sdSignal,sdErr
 syn match sdKillKey  contained /^KillMode=/ nextgroup=sdKillMode,sdErr
 syn match sdKillKey  contained /^\%(SendSIGKILL\|SendSIGHUP\)=/ nextgroup=sdBool,sdErr
 
