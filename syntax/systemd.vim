@@ -451,29 +451,33 @@ syn region sdUnitBlock matchgroup=sdHeader start=/^\[Unit\]/ end=/^\[/me=e-2 con
 syn match sdUnitKey contained /^Description=/
 syn match sdUnitKey contained /^Documentation=/ nextgroup=sdDocUri
 syn match sdUnitKey contained /^SourcePath=/ nextgroup=sdFilename,sdErr
-syn match sdUnitKey contained /^\%(Requires\|RequiresOverridable\|Requisite\|RequisiteOverridable\|Wants\|Binds\=To\|PartOf\|Conflicts\|Before\|After\|OnFailure\|Names\|Propagates\=ReloadTo\|ReloadPropagatedFrom\|PropagateReloadFrom\|JoinsNamespaceOf\)=/ nextgroup=sdUnitList
-syn match sdUnitKey contained /^\%(OnFailureIsolate\|IgnoreOnIsolate\|IgnoreOnSnapshot\|StopWhenUnneeded\|RefuseManualStart\|RefuseManualStop\|AllowIsolate\|DefaultDependencies\)=/ nextgroup=sdBool,sdErr
-syn match sdUnitKey contained /^OnFailureJobMode=/ nextgroup=sdJobMode,sdErr
-syn match sdUnitKey contained /^\%(StartLimitInterval\|StartLimitIntervalSec\|JobTimeoutSec\)=/ nextgroup=sdDuration,sdErr
+syn match sdUnitKey contained /^\%(Requires\|RequiresOverridable\|Requisite\|RequisiteOverridable\|Wants\|Binds\=To\|PartOf\|Upholds\|Conflicts\|Before\|After\|OnSuccess\|OnFailure\|Propagates\=ReloadTo\|ReloadPropagatedFrom\|PropagateReloadFrom\|PropagatesStopTo\|StopPropagatedFrom\|JoinsNamespaceOf\)=/ nextgroup=sdUnitList
+syn match sdUnitKey contained /^\%(OnFailureIsolate\|IgnoreOnIsolate\|IgnoreOnSnapshot\|StopWhenUnneeded\|RefuseManualStart\|RefuseManualStop\|AllowIsolate\|DefaultDependencies\|SurviveFinalKillSignal\)=/ nextgroup=sdBool,sdErr
+syn match sdUnitKey contained /^\%(OnSuccess\|OnFailure\)JobMode=/ nextgroup=sdJobMode,sdErr
+syn match sdUnitKey contained /^\%(StartLimitInterval\|StartLimitIntervalSec\|JobTimeoutSec\|JobRunningTimeoutSec\)=/ nextgroup=sdDuration,sdErr
 syn match sdUnitKey contained /^\%(StartLimitAction\|JobTimeoutAction\)=/ nextgroup=sdEmergencyAction,sdErr
 syn match sdUnitKey contained /^StartLimitBurst=/ nextgroup=sdUInt,sdErr
 syn match sdUnitKey contained /^\%(FailureAction\|SuccessAction\)=/ nextgroup=sdEmergencyAction,sdErr
 syn match sdUnitKey contained /^\%(FailureAction\|SuccessAction\)ExitStatus=/ nextgroup=sdExitStatusNum,sdErr
 syn match sdUnitKey contained /^\%(RebootArgument\|JobTimeoutRebootArgument\)=/
-syn match sdUnitKey contained /^RequiresMountsFor=/ nextgroup=sdFileList,sdErr
-" ConditionXXX/AssertXXX. Note that they all have an optional '|' after the '='.
-syn match sdUnitKey contained /^\%(Condition\|Assert\)\(PathExists\|PathExistsGlob\|PathIsDirectory\|PathIsMountPoint\|PathIsReadWrite\|PathIsSymbolicLink\|DirectoryNotEmpty\|FileNotEmpty\|FileIsExecutable\)=|\=!\=/ contains=sdConditionFlag nextgroup=sdFilename,sdErr
+syn match sdUnitKey contained /^\%(Requires\|Wants\)MountsFor=/ nextgroup=sdFileList
+syn match sdUnitKey contained /^CollectMode=/ nextgroup=sdCollectMode,sdErr
+" ConditionXXX/AssertXXX.
+" Flags: '|' (trigger) and '!' (negate) appear between '=' and the value.
+" condition_path types take a path value:
+syn match sdUnitKey contained /^\%(Condition\|Assert\)\%(PathExists\|PathExistsGlob\|PathIsDirectory\|PathIsMountPoint\|PathIsReadWrite\|PathIsSymbolicLink\|PathIsEncrypted\|PathIsSocket\|DirectoryNotEmpty\|FileNotEmpty\|FileIsExecutable\)=|\=!\=/ contains=sdConditionFlag nextgroup=sdFilename,sdErr
+syn match sdUnitKey contained /^\%(Condition\|Assert\)NeedsUpdate=|\=!\=/ contains=sdConditionFlag nextgroup=sdCondUpdateDir,sdErr
+" condition_string types with specific value groups:
+syn match sdUnitKey contained /^\%(Condition\|Assert\)Architecture=|\=!\=/ contains=sdConditionFlag nextgroup=sdArch,sdErr
 syn match sdUnitKey contained /^\%(Condition\|Assert\)Virtualization=|\=!\=/ contains=sdConditionFlag nextgroup=sdVirtType,sdErr
 syn match sdUnitKey contained /^\%(Condition\|Assert\)Security=|\=!\=/ contains=sdConditionFlag nextgroup=sdSecurityType,sdErr
 syn match sdUnitKey contained /^\%(Condition\|Assert\)Capability=|\=!\=/ contains=sdConditionFlag nextgroup=sdAnyCapName,sdErr
-syn match sdUnitKey contained /^\%(Condition\|Assert\)\%(KernelCommandLine\|Host\)=|\=!\=/ contains=sdConditionFlag
-syn match sdUnitKey contained /^\%(Condition\|Assert\)\%(ACPower\|Null\|FirstBoot\)=|\=/ contains=sdConditionFlag nextgroup=sdBool,sdErr
-syn match sdUnitKey contained /^\%(Condition\|Assert\)NeedsUpdate=|\=!\=/ contains=sdConditionFlag nextgroup=sdCondUpdateDir,sdErr
-syn match sdUnitKey contained /^\%(Condition\|Assert\)Architecture=|\=!\=/ contains=sdConditionFlag nextgroup=sdArch,sdErr
 syn match sdUnitKey contained /^\%(Condition\|Assert\)User=|\=/ contains=sdConditionFlag nextgroup=sdUser,sdUserGroup,sdErr
 syn match sdUnitKey contained /^\%(Condition\|Assert\)Group=|\=/ contains=sdConditionFlag nextgroup=sdUser,sdErr
 syn match sdUnitKey contained /^\%(Condition\|Assert\)ControlGroupController=|\=/ contains=sdConditionFlag nextgroup=sdCgroupVer,sdControllerList,sdErr
-syn match sdUnitKey contained /^\%(Condition\|Assert\)KernelVersion=|\=/ contains=sdConditionFlag nextgroup=sdKernelVersion,sdErr
+syn match sdUnitKey contained /^\%(Condition\|Assert\)\%(ACPower\|FirstBoot\)=|\=/ contains=sdConditionFlag nextgroup=sdBool,sdErr
+" condition_string types with free-form values (no specific value group):
+syn match sdUnitKey contained /^\%(Condition\|Assert\)\%(KernelCommandLine\|KernelVersion\|Version\|Host\|Firmware\|Credential\|Memory\|CPUFeature\|CPUs\|Environment\|OSRelease\|MemoryPressure\|CPUPressure\|IOPressure\|KernelModuleLoaded\)=|\=!\=/ contains=sdConditionFlag
 
 " --- [Unit] value types ---
 " Source: src/shared/condition.c — condition_test_control_group_controller()
