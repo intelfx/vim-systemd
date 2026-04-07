@@ -372,15 +372,51 @@ syn keyword sdKillMode contained nextgroup=sdErr control-group cgroup process mi
 " see systemd.resource-control(5)
 
 syn match sdResCtlKey contained /^Slice=/ nextgroup=sdSliceName,sdErr
-syn match sdResCtlKey contained /^\%(CPUAccounting\|MemoryAccounting\|IOAccounting\|BlockIOAccounting\|TasksAccounting\|IPAccounting\|Delegate\)=/ nextgroup=sdBool,sdErr
-syn match sdResCtlKey contained /^\%(CPUQuota\)=/ nextgroup=sdPercent,sdErr
-syn match sdResCtlKey contained /^\%(CPUShares\|StartupCPUShares\)=/ nextgroup=sdUInt,sdErr
-syn match sdResCtlKey contained /^MemoryLow=/ nextgroup=sdDatasize,sdPercent,sdErr
-syn match sdResCtlKey contained /^\%(MemoryLimit\|MemoryHigh\|MemoryMax\)=/ nextgroup=sdDatasize,sdPercent,sdInfinity,sdErr
+" --- CPU ---
+syn match sdResCtlKey contained /^\%(CPUWeight\|StartupCPUWeight\)=/ nextgroup=sdCPUWeight,sdUInt,sdErr
+syn match sdResCtlKey contained /^CPUQuota=/ nextgroup=sdPercent,sdErr
+syn match sdResCtlKey contained /^CPUQuotaPeriodSec=/ nextgroup=sdDuration,sdErr
+syn match sdResCtlKey contained /^\%(AllowedCPUs\|StartupAllowedCPUs\|AllowedMemoryNodes\|StartupAllowedMemoryNodes\)=/
+" --- Memory ---
+syn match sdResCtlKey contained /^\%(MemoryMin\|MemoryLow\|StartupMemoryLow\)=/ nextgroup=sdDatasize,sdPercent,sdErr
+syn match sdResCtlKey contained /^\%(MemoryHigh\|StartupMemoryHigh\|MemoryMax\|StartupMemoryMax\)=/ nextgroup=sdDatasize,sdPercent,sdInfinity,sdErr
+syn match sdResCtlKey contained /^\%(MemorySwapMax\|StartupMemorySwapMax\|MemoryZSwapMax\|StartupMemoryZSwapMax\)=/ nextgroup=sdDatasize,sdPercent,sdInfinity,sdErr
+syn match sdResCtlKey contained /^MemoryZSwapWriteback=/ nextgroup=sdBool,sdErr
+" --- IO ---
+syn match sdResCtlKey contained /^\%(IOWeight\|StartupIOWeight\)=/ nextgroup=sdUInt,sdErr
+syn match sdResCtlKey contained /^IODeviceWeight=/ nextgroup=sdDeviceWeight,sdErr
+syn match sdResCtlKey contained /^\%(IOReadBandwidthMax\|IOWriteBandwidthMax\|IOReadIOPSMax\|IOWriteIOPSMax\)=/ nextgroup=sdIOLimit,sdErr
+syn match sdResCtlKey contained /^IODeviceLatencyTargetSec=/ nextgroup=sdDeviceLatency,sdErr
+" --- Tasks ---
 syn match sdResCtlKey contained /^TasksMax=/ nextgroup=sdUInt,sdInfinity,sdErr
-syn match sdResCtlKey contained /^\%(IOWeight\|StartupIOWeight\|BlockIOWeight\|StartupBlockIOWeight\)=/ nextgroup=sdUInt,sdErr
+" --- Device ---
 syn match sdResCtlKey contained /^DeviceAllow=/ nextgroup=sdDevAllow,sdErr
 syn match sdResCtlKey contained /^DevicePolicy=/ nextgroup=sdDevPolicy,sdErr
+" --- Delegate ---
+syn match sdResCtlKey contained /^Delegate=/ nextgroup=sdControllerList,sdBool,sdErr
+syn match sdResCtlKey contained /^DelegateSubgroup=/
+syn match sdResCtlKey contained /^DisableControllers=/ nextgroup=sdControllerList,sdErr
+" --- Accounting (bool) ---
+syn match sdResCtlKey contained /^\%(MemoryAccounting\|IOAccounting\|TasksAccounting\|IPAccounting\|CoredumpReceive\)=/ nextgroup=sdBool,sdErr
+" --- IP filtering ---
+syn match sdResCtlKey contained /^\%(IPAddressAllow\|IPAddressDeny\)=/
+syn match sdResCtlKey contained /^\%(IPIngressFilterPath\|IPEgressFilterPath\)=/ nextgroup=sdFilename,sdErr
+" --- Managed OOM ---
+syn match sdResCtlKey contained /^\%(ManagedOOMSwap\|ManagedOOMMemoryPressure\)=/ nextgroup=sdManagedOOMMode,sdErr
+syn match sdResCtlKey contained /^ManagedOOMMemoryPressureLimit=/ nextgroup=sdPercent,sdErr
+syn match sdResCtlKey contained /^ManagedOOMMemoryPressureDurationSec=/ nextgroup=sdDuration,sdErr
+syn match sdResCtlKey contained /^ManagedOOMPreference=/ nextgroup=sdManagedOOMPref,sdErr
+" --- Memory pressure ---
+syn match sdResCtlKey contained /^MemoryPressureWatch=/ nextgroup=sdPressureWatch,sdBool,sdErr
+syn match sdResCtlKey contained /^MemoryPressureThresholdSec=/ nextgroup=sdDuration,sdErr
+" --- BPF / network ---
+syn match sdResCtlKey contained /^BPFProgram=/
+syn match sdResCtlKey contained /^\%(SocketBindAllow\|SocketBindDeny\)=/
+syn match sdResCtlKey contained /^RestrictNetworkInterfaces=\~\=/ contains=sdInvertFlag
+syn match sdResCtlKey contained /^BindNetworkInterface=/
+syn match sdResCtlKey contained /^NFTSet=/
+" --- Legacy (deprecated, accepted for compat) ---
+syn match sdResCtlKey contained /^\%(CPUAccounting\|BlockIOAccounting\|CPUShares\|StartupCPUShares\|BlockIOWeight\|StartupBlockIOWeight\|BlockIODeviceWeight\|BlockIOReadBandwidth\|BlockIOWriteBandwidth\|MemoryLimit\|NetClass\|DefaultMemoryMin\|DefaultMemoryLow\|DefaultStartupMemoryLow\)=/ nextgroup=sdUInt,sdErr
 
 " --- Resource control value types ---
 syn match sdSliceName contained /\S\+\.slice\_s/ contains=sdUnitName
