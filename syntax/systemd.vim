@@ -498,23 +498,34 @@ syn match sdInstance   contained nextgroup=sdErr /[A-Za-z0-9@:._\\-]\+/ contains
 
 " --- [Service] ---
 syn region sdServiceBlock matchgroup=sdHeader start=/^\[Service\]/ end=/^\[/me=e-2 contains=sdServiceKey,sdExecKey,sdKillKey,sdResCtlKey
-syn match sdServiceKey contained /^BusName=/
-syn match sdServiceKey contained /^\%(RemainAfterExit\|GuessMainPID\|PermissionsStartOnly\|RootDirectoryStartOnly\|NonBlocking\|ControlGroupModify\)=/ nextgroup=sdBool,sdErr
-syn match sdServiceKey contained /^\%(SysVStartPriority\|FsckPassNo\)=/ nextgroup=sdUInt,sdErr
-syn match sdServiceKey contained /^\%(Restart\|Watchdog\|RuntimeMax\)Sec=/ nextgroup=sdDuration,sdErr
-syn match sdServiceKey contained /^Timeout\%(\|Start\|Stop\|Abort\)Sec=/ nextgroup=sdDuration,sdErr
-syn match sdServiceKey contained /^Sockets=/ nextgroup=sdUnitList
-syn match sdServiceKey contained /^PIDFile=/ nextgroup=sdFilename,sdErr
 syn match sdServiceKey contained /^Type=/ nextgroup=sdServiceType,sdErr
+syn match sdServiceKey contained /^ExitType=/ nextgroup=sdExitType,sdErr
 syn match sdServiceKey contained /^Restart=/ nextgroup=sdRestartType,sdErr
+syn match sdServiceKey contained /^RestartMode=/ nextgroup=sdRestartMode,sdErr
+syn match sdServiceKey contained /^\%(RemainAfterExit\|GuessMainPID\|PermissionsStartOnly\|RootDirectoryStartOnly\|NonBlocking\)=/ nextgroup=sdBool,sdErr
+syn match sdServiceKey contained /^PIDFile=/ nextgroup=sdFilename,sdErr
+syn match sdServiceKey contained /^BusName=/
 syn match sdServiceKey contained /^NotifyAccess=/ nextgroup=sdNotifyType,sdErr
-syn match sdServiceKey contained /^StartLimitInterval=/ nextgroup=sdDuration,sdErr
-syn match sdServiceKey contained /^StartLimitAction=/ nextgroup=sdEmergencyAction,sdErr
-syn match sdServiceKey contained /^StartLimitBurst=/ nextgroup=sdUInt,sdErr
-syn match sdServiceKey contained /^FailureAction=/ nextgroup=sdEmergencyAction,sdErr
+syn match sdServiceKey contained /^Sockets=/ nextgroup=sdUnitList
+syn match sdServiceKey contained /^\%(RestartSec\|WatchdogSec\|RuntimeMaxSec\|RuntimeRandomizedExtraSec\|RestartMaxDelaySec\)=/ nextgroup=sdDuration,sdErr
+syn match sdServiceKey contained /^Timeout\%(Sec\|StartSec\|StopSec\|AbortSec\)=/ nextgroup=sdDuration,sdErr
+syn match sdServiceKey contained /^\%(TimeoutStartFailureMode\|TimeoutStopFailureMode\)=/ nextgroup=sdTimeoutMode,sdErr
+syn match sdServiceKey contained /^\%(RestartSteps\|FileDescriptorStoreMax\|StartLimitBurst\)=/ nextgroup=sdUInt,sdErr
+syn match sdServiceKey contained /^FileDescriptorStorePreserve=/ nextgroup=sdPreserveMode,sdBool,sdErr
 syn match sdServiceKey contained /^\%(RestartPrevent\|RestartForce\)ExitStatus=/ nextgroup=sdSignalList
 syn match sdServiceKey contained /^SuccessExitStatus=/ nextgroup=sdExitStatusList
+syn match sdServiceKey contained /^OOMPolicy=/ nextgroup=sdOOMPolicy,sdErr
+syn match sdServiceKey contained /^OpenFile=/
+syn match sdServiceKey contained /^ReloadSignal=/ nextgroup=sdSignal,sdErr
+syn match sdServiceKey contained /^RefreshOnReload=\~\=/ contains=sdInvertFlag
+syn match sdServiceKey contained /^\%(USBFunctionDescriptors\|USBFunctionStrings\)=/ nextgroup=sdFilename,sdErr
+" Legacy compat keys (these moved to [Unit] but are still accepted in [Service])
+syn match sdServiceKey contained /^StartLimitInterval=/ nextgroup=sdDuration,sdErr
+syn match sdServiceKey contained /^StartLimitAction=/ nextgroup=sdEmergencyAction,sdErr
+syn match sdServiceKey contained /^FailureAction=/ nextgroup=sdEmergencyAction,sdErr
 syn match sdServiceKey contained /^RebootArgument=/
+" Legacy (deprecated, accepted for compat)
+syn match sdServiceKey contained /^\%(SysVStartPriority\|BusPolicy\)=/
 
 " --- [Service] value types ---
 syn keyword sdServiceType  contained nextgroup=sdErr simple exec forking dbus oneshot notify notify-reload idle
@@ -617,7 +628,6 @@ hi def link sdKillKey           sdKey
 hi def link sdResCtlKey         sdKey
 hi def link sdSocketKey         sdKey
 hi def link sdServiceKey        sdKey
-hi def link sdServiceCommonKey  sdKey
 hi def link sdTimerKey          sdKey
 hi def link sdMountKey          sdKey
 hi def link sdAutomountKey      sdKey
