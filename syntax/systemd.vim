@@ -574,8 +574,8 @@ syn keyword sdDeferTrigger contained nextgroup=sdErr patient
 " --- [Timer] ---
 syn region sdTimerBlock matchgroup=sdHeader start=/^\[Timer\]/ end=/^\[/me=e-2 contains=sdTimerKey
 syn match sdTimerKey contained /^On\%(Active\|Boot\|Startup\|UnitActive\|UnitInactive\)Sec=/ nextgroup=sdDuration,sdErr
-syn match sdTimerKey contained /^\%(Accuracy\|RandomizedDelay\)Sec=/ nextgroup=sdDuration,sdErr
-syn match sdTimerKey contained /^\%(Persistent\|WakeSystem\|RemainAfterElapse\|OnClockChange\|OnTimezoneChange\)=/ nextgroup=sdBool,sdErr
+syn match sdTimerKey contained /^\%(AccuracySec\|RandomizedDelaySec\|RandomizedOffsetSec\)=/ nextgroup=sdDuration,sdErr
+syn match sdTimerKey contained /^\%(Persistent\|WakeSystem\|RemainAfterElapse\|FixedRandomDelay\|DeferReactivation\|OnClockChange\|OnTimezoneChange\)=/ nextgroup=sdBool,sdErr
 " TODO: sdCalendar parsing is incomplete — the match is a rough approximation
 syn match sdTimerKey contained /^OnCalendar=/ nextgroup=sdCalendar
 syn match sdTimerKey contained /^Unit=/ nextgroup=sdUnitList
@@ -584,17 +584,23 @@ syn match sdTimerKey contained /^Unit=/ nextgroup=sdUnitList
 syn region sdAutoMountBlock matchgroup=sdHeader start=/^\[Automount\]/ end=/^\[/me=e-2 contains=sdAutomountKey
 syn match sdAutomountKey contained /^Where=/ nextgroup=sdFilename,sdErr
 syn match sdAutomountKey contained /^DirectoryMode=/ nextgroup=sdOctal,sdErr
+syn match sdAutomountKey contained /^ExtraOptions=/
+syn match sdAutomountKey contained /^TimeoutIdleSec=/ nextgroup=sdDuration,sdErr
 
 " --- [Mount] ---
 syn region sdMountBlock matchgroup=sdHeader start=/^\[Mount\]/ end=/^\[/me=e-2 contains=sdMountKey,sdAutomountKey,sdExecKey,sdKillKey,sdResCtlKey
-syn match sdMountKey contained /^\%(SloppyOptions\|LazyUnmount\|ForceUnmount\)=/ nextgroup=sdBool,sdErr
+syn match sdMountKey contained /^\%(SloppyOptions\|LazyUnmount\|ForceUnmount\|ReadWriteOnly\)=/ nextgroup=sdBool,sdErr
 syn match sdMountKey contained /^\%(What\|Type\|Options\)=/
+syn match sdMountKey contained /^Where=/ nextgroup=sdFilename,sdErr
+syn match sdMountKey contained /^TimeoutSec=/ nextgroup=sdDuration,sdErr
+syn match sdMountKey contained /^DirectoryMode=/ nextgroup=sdOctal,sdErr
 
 " --- [Swap] ---
 syn region sdSwapBlock matchgroup=sdHeader start=/^\[Swap\]/ end=/^\[/me=e-2 contains=sdSwapKey,sdExecKey,sdKillKey,sdResCtlKey
 syn match sdSwapKey contained /^What=/ nextgroup=sdFilename,sdErr
-syn match sdSwapKey contained /^Priority=/ nextgroup=sdUInt,sdErr
+syn match sdSwapKey contained /^Priority=/ nextgroup=sdInt,sdErr
 syn match sdSwapKey contained /^Options=/
+syn match sdSwapKey contained /^TimeoutSec=/ nextgroup=sdDuration,sdErr
 
 " --- [Path] ---
 syn region sdPathBlock matchgroup=sdHeader start=/^\[Path\]/ end=/^\[/me=e-2 contains=sdPathKey
@@ -602,13 +608,17 @@ syn match sdPathKey contained /^\%(PathExists\|PathExistsGlob\|PathChanged\|Path
 syn match sdPathKey contained /^MakeDirectory=/ nextgroup=sdBool,sdErr
 syn match sdPathKey contained /^DirectoryMode=/ nextgroup=sdOctal,sdErr
 syn match sdPathKey contained /^Unit=/ nextgroup=sdUnitList
+syn match sdPathKey contained /^TriggerLimitIntervalSec=/ nextgroup=sdDuration,sdErr
+syn match sdPathKey contained /^TriggerLimitBurst=/ nextgroup=sdUInt,sdErr
 
 " --- [Slice] ---
 syn region sdSliceBlock matchgroup=sdHeader start=/^\[Slice\]/ end=/^\[/me=e-2 contains=sdSliceKey,sdResCtlKey,sdKillKey
+syn match sdSliceKey contained /^\%(ConcurrencySoftMax\|ConcurrencyHardMax\)=/ nextgroup=sdUInt,sdErr
 
 " --- [Scope] ---
 syn region sdScopeBlock matchgroup=sdHeader start=/^\[Scope\]/ end=/^\[/me=e-2 contains=sdScopeKey,sdResCtlKey,sdKillKey
-syn match sdScopeKey contained /^TimeoutStopSec=/ nextgroup=sdDuration,sdErr
+syn match sdScopeKey contained /^\%(RuntimeMaxSec\|RuntimeRandomizedExtraSec\|TimeoutStopSec\)=/ nextgroup=sdDuration,sdErr
+syn match sdScopeKey contained /^OOMPolicy=/ nextgroup=sdOOMPolicy,sdErr
 
 " === 9. Highlight definitions ===
 
@@ -641,6 +651,7 @@ hi def link sdMountKey          sdKey
 hi def link sdAutomountKey      sdKey
 hi def link sdSwapKey           sdKey
 hi def link sdPathKey           sdKey
+hi def link sdSliceKey          sdKey
 hi def link sdScopeKey          sdKey
 
 " --- Value links ---
