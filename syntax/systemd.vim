@@ -120,6 +120,7 @@ syn match sdDocUri         contained /\%(https\=:\/\/\|file:\|info:\|man:\)\S\+\
 syn match sdConditionFlag  contained /[!|]/
 syn match sdExecFlag       contained /[-@:|+!]/
 syn match sdDashFlag       contained /-/
+syn match sdInvertFlag     contained /\~/
 
 " === 4. Voluminous keyword lists ===
 
@@ -209,41 +210,102 @@ syn match   sdControllerList contained /.*/ contains=sdControllerName,sdErrItem
 " (for [Service|Socket|Mount|Swap])
 " see systemd.exec(5)
 
+" --- Exec commands ---
 syn match sdExecKey contained /^Exec\%(Start\%(Pre\|Post\|\)\|Reload\|Stop\|StopPost\|Condition\)=[-@:|+!]*/ contains=sdExecFlag nextgroup=sdExecFile,sdErr
+" --- Paths ---
 syn match sdExecKey contained /^WorkingDirectory=-\=/ contains=sdDashFlag nextgroup=sdFilename,sdErr
-syn match sdExecKey contained /^\%(RootDirectory\|TTYPath\|RootImage\)=/ nextgroup=sdFilename,sdErr
+syn match sdExecKey contained /^\%(RootDirectory\|RootImage\|RootVerity\|RootMStack\|TTYPath\)=/ nextgroup=sdFilename,sdErr
+syn match sdExecKey contained /^\%(UserNamespace\|NetworkNamespace\|IPCNamespace\)Path=/ nextgroup=sdFilename,sdErr
+" --- Directories ---
 syn match sdExecKey contained /^\%(Runtime\|State\|Cache\|Logs\|Configuration\)Directory=/ nextgroup=sdFilename,sdErr
 syn match sdExecKey contained /^\%(Runtime\|State\|Cache\|Logs\|Configuration\)DirectoryMode=/ nextgroup=sdOctal,sdErr
+syn match sdExecKey contained /^RuntimeDirectoryPreserve=/ nextgroup=sdPreserveMode,sdBool,sdErr
+syn match sdExecKey contained /^\%(State\|Cache\|Logs\)DirectoryAccounting=/ nextgroup=sdBool,sdErr
+syn match sdExecKey contained /^\%(State\|Cache\|Logs\)DirectoryQuota=/ nextgroup=sdDatasize,sdErr
+" --- User/group ---
 syn match sdExecKey contained /^User=/ nextgroup=sdUser,sdErr
 syn match sdExecKey contained /^Group=/ nextgroup=sdUser,sdErr
-syn match sdExecKey contained /^\%(SupplementaryGroups\|CPUAffinity\|SyslogIdentifier\|PAMName\|TCPWrapName\|ControlGroup\|ControlGroupAttribute\|UtmpIdentifier\)=/
-syn match sdExecKey contained /^Limit\%(CPU\|FSIZE\|DATA\|STACK\|CORE\|RSS\|NOFILE\|AS\|NPROC\|MEMLOCK\|LOCKS\|SIGPENDING\|MSGQUEUE\|NICE\|RTPRIO\|RTTIME\)=/ nextgroup=sdRlimit
-syn match sdExecKey contained /^\%(CPUSchedulingResetOnFork\|TTYReset\|TTYVHangup\|TTYVTDisallocate\|SyslogLevelPrefix\|ControlGroupModify\|DynamicUser\|RemoveIPC\|NoNewPrivileges\|RestrictRealtime\|RestrictSUIDSGID\|LockPersonality\|MountAPIVFS\)=/ nextgroup=sdBool,sdErr
-syn match sdExecKey contained /^Private\%(Tmp\|Network\|Devices\|Users\|Mounts\)=/ nextgroup=sdBool,sdErr
-syn match sdExecKey contained /^Protect\%(KernelTunables\|KernelModules\|KernelLogs\|Clock\|ControlGroups\|Hostname\)=/ nextgroup=sdBool,sdErr
+syn match sdExecKey contained /^\%(SupplementaryGroups\|PAMName\|UtmpIdentifier\)=/
+syn match sdExecKey contained /^UtmpMode=/ nextgroup=sdUtmpMode,sdErr
+syn match sdExecKey contained /^SetLoginEnvironment=/ nextgroup=sdBool,sdErr
+" --- Scheduling ---
 syn match sdExecKey contained /^\%(Nice\|OOMScoreAdjust\)=/ nextgroup=sdInt,sdErr
-syn match sdExecKey contained /^\%(CPUSchedulingPriority\|TimerSlackNSec\)=/ nextgroup=sdUInt,sdErr
-" 'ReadOnlyDirectories' et al. are obsolete versions of ReadOnlyPaths' et al.
-syn match sdExecKey contained /^\%(ReadWrite\|ReadOnly\|Inaccessible\)Directories=/ nextgroup=sdFileList
-syn match sdExecKey contained /^\%(ReadWrite\|ReadOnly\|Inaccessible\|Exec\|NoExec\)Paths=/ nextgroup=sdExecPathList
-syn match sdExecKey contained /^CapabilityBoundingSet=/ nextgroup=sdCapNameList
-syn match sdExecKey contained /^Capabilities=/ nextgroup=sdCapability,sdErr
-syn match sdExecKey contained /^UMask=/ nextgroup=sdOctal,sdErr
-syn match sdExecKey contained /^StandardInput=/ nextgroup=sdStdin,sdErr
-syn match sdExecKey contained /^Standard\%(Output\|Error\)=/ nextgroup=sdStdout,sdErr
-syn match sdExecKey contained /^SecureBits=/ nextgroup=sdSecureBitList
-syn match sdExecKey contained /^SyslogFacility=/ nextgroup=sdSyslogFacil,sdErr
-syn match sdExecKey contained /^SyslogLevel=/ nextgroup=sdSyslogLevel,sdErr
+syn match sdExecKey contained /^\%(CPUSchedulingPriority\|TimerSlackNSec\|CoredumpFilter\)=/ nextgroup=sdUInt,sdErr
+syn match sdExecKey contained /^CPUSchedulingResetOnFork=/ nextgroup=sdBool,sdErr
+syn match sdExecKey contained /^CPUSchedulingPolicy=/ nextgroup=sdCPUSchedPol,sdErr
 syn match sdExecKey contained /^IOSchedulingClass=/ nextgroup=sdIOSchedClass,sdErr
 syn match sdExecKey contained /^IOSchedulingPriority=/ nextgroup=sdIOSchedPrio,sdErr
-syn match sdExecKey contained /^CPUSchedulingPolicy=/ nextgroup=sdCPUSchedPol,sdErr
+syn match sdExecKey contained /^\%(CPUAffinity\|NUMAPolicy\|NUMAMask\)=/
+" --- Resource limits ---
+syn match sdExecKey contained /^Limit\%(CPU\|FSIZE\|DATA\|STACK\|CORE\|RSS\|NOFILE\|AS\|NPROC\|MEMLOCK\|LOCKS\|SIGPENDING\|MSGQUEUE\|NICE\|RTPRIO\|RTTIME\)=/ nextgroup=sdRlimit
+" --- Sandboxing: bool ---
+syn match sdExecKey contained /^\%(DynamicUser\|RemoveIPC\|NoNewPrivileges\|RestrictRealtime\|RestrictSUIDSGID\|LockPersonality\|IgnoreSIGPIPE\|MemoryDenyWriteExecute\|RootEphemeral\|PrivateNetwork\|PrivateDevices\|PrivateIPC\|ProtectKernelTunables\|ProtectKernelModules\|ProtectKernelLogs\|ProtectClock\)=/ nextgroup=sdBool,sdErr
+" --- Sandboxing: tristate (accepts bool values) ---
+syn match sdExecKey contained /^\%(MountAPIVFS\|BindLogSockets\|PrivateMounts\|MemoryKSM\)=/ nextgroup=sdBool,sdErr
+" --- Sandboxing: enum (with bool fallback for yes/no) ---
+syn match sdExecKey contained /^ProtectSystem=/ nextgroup=sdProtectSystem,sdBool,sdErr
+syn match sdExecKey contained /^ProtectHome=/ nextgroup=sdProtectHome,sdBool,sdErr
+syn match sdExecKey contained /^ProtectControlGroups=/ nextgroup=sdProtectCG,sdBool,sdErr
+syn match sdExecKey contained /^ProtectHostname=-\=/ contains=sdDashFlag nextgroup=sdProtectHostname,sdBool,sdErr
+syn match sdExecKey contained /^PrivateTmp=/ nextgroup=sdPrivateTmp,sdBool,sdErr
+syn match sdExecKey contained /^PrivateUsers=/ nextgroup=sdPrivateUsers,sdBool,sdErr
+syn match sdExecKey contained /^\%(PrivatePIDs\|PrivateBPF\)=/ nextgroup=sdBool,sdErr
+" --- Sandboxing: pure enum ---
+syn match sdExecKey contained /^ProtectProc=/ nextgroup=sdProtectProc,sdErr
+syn match sdExecKey contained /^ProcSubset=/ nextgroup=sdProcSubset,sdErr
+syn match sdExecKey contained /^KeyringMode=/ nextgroup=sdKeyringMode,sdErr
+syn match sdExecKey contained /^Personality=/ nextgroup=sdArch,sdErr
+syn match sdExecKey contained /^MemoryTHP=/ nextgroup=sdMemoryTHP,sdErr
+" --- Sandboxing: paths ---
+" 'ReadOnlyDirectories' et al. are obsolete versions of 'ReadOnlyPaths' et al.
+syn match sdExecKey contained /^\%(ReadWrite\|ReadOnly\|Inaccessible\)Directories=/ nextgroup=sdExecPathList
+syn match sdExecKey contained /^\%(ReadWrite\|ReadOnly\|Inaccessible\|Exec\|NoExec\)Paths=/ nextgroup=sdExecPathList
 syn match sdExecKey contained /^MountFlags=/ nextgroup=sdMountFlags,sdErr
-syn match sdExecKey contained /^\%(IgnoreSIGPIPE\|MemoryDenyWriteExecute\)=/ nextgroup=sdBool,sdErr
+" --- Sandboxing: syscall/capabilities ---
+syn match sdExecKey contained /^\%(CapabilityBoundingSet\|AmbientCapabilities\)=\~\=/ contains=sdInvertFlag nextgroup=sdCapNameList
+syn match sdExecKey contained /^Capabilities=/ nextgroup=sdCapability,sdErr
+syn match sdExecKey contained /^SecureBits=/ nextgroup=sdSecureBitList
+syn match sdExecKey contained /^SystemCallFilter=\~\=/ contains=sdInvertFlag
+syn match sdExecKey contained /^SystemCallLog=\~\=/ contains=sdInvertFlag
+syn match sdExecKey contained /^SystemCallArchitectures=/
+syn match sdExecKey contained /^SystemCallErrorNumber=/ nextgroup=sdErrno,sdErr
+syn match sdExecKey contained /^RestrictAddressFamilies=\~\=/ contains=sdInvertFlag
+syn match sdExecKey contained /^\%(RestrictNamespaces\|DelegateNamespaces\)=\~\=/ contains=sdInvertFlag nextgroup=sdNamespace,sdBool,sdErr
+syn match sdExecKey contained /^RestrictFileSystems=\~\=/ contains=sdInvertFlag
+syn match sdExecKey contained /^RestrictNetworkInterfaces=\~\=/ contains=sdInvertFlag
+" --- Sandboxing: dash-flag keys ---
+syn match sdExecKey contained /^\%(SELinuxContext\|AppArmorProfile\|SmackProcessLabel\)=-\=/ contains=sdDashFlag
+" --- Sandboxing: BPF ---
+syn match sdExecKey contained /^\%(BPFDelegateCommands\|BPFDelegateMaps\|BPFDelegatePrograms\|BPFDelegateAttachments\)=/
+" --- Stdio ---
+syn match sdExecKey contained /^StandardInput=/ nextgroup=sdStdin,sdErr
+syn match sdExecKey contained /^Standard\%(Output\|Error\)=/ nextgroup=sdStdout,sdErr
+syn match sdExecKey contained /^\%(StandardInputText\|StandardInputData\)=/
+" --- TTY ---
+syn match sdExecKey contained /^\%(TTYReset\|TTYVHangup\|TTYVTDisallocate\)=/ nextgroup=sdBool,sdErr
+syn match sdExecKey contained /^\%(TTYRows\|TTYColumns\)=/ nextgroup=sdUInt,sdErr
+" --- Logging ---
+syn match sdExecKey contained /^\%(SyslogIdentifier\|LogNamespace\)=/
+syn match sdExecKey contained /^SyslogFacility=/ nextgroup=sdSyslogFacil,sdErr
+syn match sdExecKey contained /^\%(SyslogLevel\|LogLevelMax\)=/ nextgroup=sdSyslogLevel,sdErr
+syn match sdExecKey contained /^SyslogLevelPrefix=/ nextgroup=sdBool,sdErr
+syn match sdExecKey contained /^LogRateLimitIntervalSec=/ nextgroup=sdDuration,sdErr
+syn match sdExecKey contained /^LogRateLimitBurst=/ nextgroup=sdUInt,sdErr
+syn match sdExecKey contained /^\%(LogExtraFields\|LogFilterPatterns\)=/
+" --- Environment ---
 syn match sdExecKey contained /^Environment=/ nextgroup=sdEnvDefs
 syn match sdExecKey contained /^EnvironmentFile=-\=/ contains=sdDashFlag nextgroup=sdFilename,sdErr
-" These are also shared by [Service|Socket|Mount|Swap], although they're not
-" listed in systemd.exec(5)
-syn match sdExecKey contained /^TimeoutSec=/ nextgroup=sdDuration,sdErr
+syn match sdExecKey contained /^\%(PassEnvironment\|UnsetEnvironment\)=/
+" --- Credentials ---
+syn match sdExecKey contained /^\%(SetCredential\|SetCredentialEncrypted\|LoadCredential\|LoadCredentialEncrypted\|ImportCredential\)=/
+" --- Root image / mount / extension ---
+syn match sdExecKey contained /^\%(RootImageOptions\|RootImagePolicy\|RootHash\|RootHashSignature\)=/
+syn match sdExecKey contained /^\%(MountImages\|MountImagePolicy\|ExtensionImages\|ExtensionImagePolicy\|ExtensionDirectories\)=/
+syn match sdExecKey contained /^\%(BindPaths\|BindReadOnlyPaths\|TemporaryFileSystem\|ExecSearchPath\)=/
+" --- UMask ---
+syn match sdExecKey contained /^UMask=/ nextgroup=sdOctal,sdErr
+" --- Durations ---
+syn match sdExecKey contained /^\%(TimeoutSec\|TimeoutCleanSec\)=/ nextgroup=sdDuration,sdErr
 
 " --- Exec context value types ---
 syn match   sdExecFile      contained /\S\+/ nextgroup=sdExecArgs
@@ -265,6 +327,8 @@ syn keyword sdIOSchedPrio   contained nextgroup=sdErr 0 1 2 3 4 5 6 7
 syn keyword sdCPUSchedPol   contained nextgroup=sdErr other batch idle fifo rr
 syn keyword sdMountFlags    contained nextgroup=sdErr shared slave private
 syn keyword sdSecureBits    contained nextgroup=sdErr keep-caps keep-caps-locked noroot noroot-locked no-setuid-fixup no-setuid-fixup-locked
+" Source: src/core/execute.h — ExecUtmpMode
+syn keyword sdUtmpMode      contained nextgroup=sdErr init login user
 
 " --- Exec context enum types ---
 " Source: src/core/namespace.h — ProtectSystem
@@ -577,6 +641,7 @@ hi def link sdPressureWatch     sdValue
 hi def link sdControllerName    sdValue
 hi def link sdCgroupVer         sdValue
 hi def link sdCPUWeight         sdValue
+hi def link sdUtmpMode          sdValue
 hi def link sdSocketTimestamping sdValue
 hi def link sdDeferTrigger      sdValue
 hi def link sdArch              sdValue
