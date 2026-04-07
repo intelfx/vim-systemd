@@ -491,7 +491,7 @@ syn keyword sdCollectMode     contained nextgroup=sdErr inactive inactive-or-fai
 " --- [Install] ---
 " see systemd.unit(5)
 syn region sdInstallBlock matchgroup=sdHeader start=/^\[Install\]/ end=/^\[/me=e-2 contains=sdInstallKey
-syn match sdInstallKey contained /^\%(WantedBy\|Alias\|Also\|RequiredBy\)=/ nextgroup=sdUnitList
+syn match sdInstallKey contained /^\%(WantedBy\|RequiredBy\|UpheldBy\|Alias\|Also\)=/ nextgroup=sdUnitList
 syn match sdInstallKey contained /^DefaultInstance=/ nextgroup=sdInstance
 " sdInstance: valid instance names are [A-Za-z0-9@:._\\-]+
 syn match sdInstance   contained nextgroup=sdErr /[A-Za-z0-9@:._\\-]\+/ contains=sdFormatStr
