@@ -542,17 +542,25 @@ syn keyword sdOOMPolicy    contained nextgroup=sdErr continue stop kill
 
 " --- [Socket] ---
 syn region sdSocketBlock matchgroup=sdHeader start=/^\[Socket\]/ end=/^\[/me=e-2 contains=sdSocketKey,sdExecKey,sdKillKey,sdResCtlKey
-syn match sdSocketKey contained /^Listen\%(Stream\|Datagram\|SequentialPacket\|FIFO\|Special\|Netlink\|MessageQueue\)=/
+syn match sdSocketKey contained /^Listen\%(Stream\|Datagram\|SequentialPacket\|FIFO\|Special\|Netlink\|MessageQueue\|USBFunction\)=/
 syn match sdSocketKey contained /^Listen\%(FIFO\|Special\)=/ nextgroup=sdFilename,sdErr
-syn match sdSocketKey contained /^\%(Socket\|Directory\)Mode=/ nextgroup=sdOctal,sdErr
-syn match sdSocketKey contained /^\%(Backlog\|MaxConnections\|Priority\|IPTTL\|Mark\|MessageQueueMaxMessages\|MessageQueueMessageSize\)=/ nextgroup=sdUInt,sdErr
+syn match sdSocketKey contained /^\%(SocketMode\|DirectoryMode\)=/ nextgroup=sdOctal,sdErr
+syn match sdSocketKey contained /^\%(Backlog\|MaxConnections\|MaxConnectionsPerSource\|Priority\|IPTTL\|Mark\|KeepAliveProbes\|MessageQueueMaxMessages\|MessageQueueMessageSize\)=/ nextgroup=sdUInt,sdErr
 syn match sdSocketKey contained /^\%(ReceiveBuffer\|SendBuffer\|PipeSize\)=/ nextgroup=sdDatasize,sdUInt,sdErr
-syn match sdSocketKey contained /^\%(Accept\|KeepAlive\|FreeBind\|Transparent\|Broadcast\|Writable\|NoDelay\|PassCredentials\|PassSecurity\|ReusePort\|RemoveOnStop\|SELinuxContextFromNet\)=/ nextgroup=sdBool,sdErr
+syn match sdSocketKey contained /^\%(Accept\|FlushPending\|KeepAlive\|FreeBind\|Transparent\|Broadcast\|Writable\|NoDelay\|PassCredentials\|PassPIDFD\|PassSecurity\|PassPacketInfo\|AcceptFileDescriptors\|ReusePort\|RemoveOnStop\|SELinuxContextFromNet\|PassFileDescriptorsToExec\)=/ nextgroup=sdBool,sdErr
+syn match sdSocketKey contained /^\%(KeepAliveTimeSec\|KeepAliveIntervalSec\|DeferAcceptSec\|TimeoutSec\|TriggerLimitIntervalSec\|PollLimitIntervalSec\|DeferTriggerMaxSec\)=/ nextgroup=sdDuration,sdErr
+syn match sdSocketKey contained /^\%(TriggerLimitBurst\|PollLimitBurst\)=/ nextgroup=sdUInt,sdErr
 syn match sdSocketKey contained /^BindToDevice=/
 syn match sdSocketKey contained /^Service=/ nextgroup=sdUnit
 syn match sdSocketKey contained /^BindIPv6Only=/ nextgroup=sdBindIPv6,sdErr
 syn match sdSocketKey contained /^IPTOS=/ nextgroup=sdIPTOS,sdUInt,sdErr
 syn match sdSocketKey contained /^TCPCongestion=/ nextgroup=sdTCPCongest
+syn match sdSocketKey contained /^Timestamping=/ nextgroup=sdSocketTimestamping,sdErr
+syn match sdSocketKey contained /^DeferTrigger=/ nextgroup=sdDeferTrigger,sdBool,sdErr
+syn match sdSocketKey contained /^SocketProtocol=/
+syn match sdSocketKey contained /^\%(SocketUser\|SocketGroup\)=/
+syn match sdSocketKey contained /^\%(Symlinks\|FileDescriptorName\)=/
+syn match sdSocketKey contained /^\%(SmackLabel\|SmackLabelIPIn\|SmackLabelIPOut\)=/
 
 " --- [Socket] value types ---
 syn keyword sdBindIPv6   contained nextgroup=sdErr default both ipv6-only
