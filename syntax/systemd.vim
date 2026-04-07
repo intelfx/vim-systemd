@@ -107,6 +107,7 @@ syn match sdUnitList       contained /.\+/ contains=sdUnitName,sdErrItem
 " --- Users ---
 syn match sdUser           contained nextgroup=sdErr /\d\+\|[A-Za-z_][A-Za-z0-9_-]*/ contains=sdFormatStr
 syn match sdUser           contained nextgroup=sdErr /%[A-Za-z%]\+/ contains=sdFormatStr
+syn match sdUserList       contained nextgroup=sdErr /.*/ contains=sdUser,sdErrItem
 syn keyword sdUserGroup    contained @system
 
 " --- Resource limits ---
@@ -202,6 +203,12 @@ syn keyword sdSecurityType contained nextgroup=sdErr selinux apparmor tomoyo sma
 "   - `native` is a special value
 syn keyword sdArch         contained nextgroup=sdErr native alpha arc arc-be arm arm64 arm64-be arm-be cris ia64 loongarch64 m68k mips mips64 mips64-le mips-le nios2 parisc parisc64 ppc ppc64 ppc64-le ppc-le riscv32 riscv64 s390 s390x sh sh64 sparc sparc64 tilegx x86 x86-64
 
+" see systemd.exec(5), SystemCallArchitectures=
+"   - additional values that are only valid in the SystemCallArchitectures= directive
+"   - sdArchList is only used for that directive, so it allows both classes of values
+syn keyword sdArchFilter   contained nextgroup=sdErr x32 mips64-n32 mips64-le-n32
+syn match   sdArchList     contained /.*/ contains=sdArch,sdArchFilter,sdErrItem
+
 " Source: src/basic/cgroup-util.c — cgroup_controller_table[]
 syn keyword sdControllerName contained cpu cpuacct cpuset io blkio memory devices pids bpf-firewall bpf-devices bpf-foreign bpf-socket-bind bpf-restrict-network-interfaces bpf-bind-network-interface
 syn match   sdControllerList contained /.*/ contains=sdControllerName,sdErrItem
@@ -225,7 +232,9 @@ syn match sdExecKey contained /^\%(State\|Cache\|Logs\)DirectoryQuota=/ nextgrou
 " --- User/group ---
 syn match sdExecKey contained /^User=/ nextgroup=sdUser,sdErr
 syn match sdExecKey contained /^Group=/ nextgroup=sdUser,sdErr
-syn match sdExecKey contained /^\%(SupplementaryGroups\|PAMName\|UtmpIdentifier\)=/
+syn match sdExecKey contained /^SupplementaryGroups=/ nextgroup=sdUserList,sdErr
+syn match sdExecKey contained /^PAMName=/
+syn match sdExecKey contained /^UtmpIdentifier=/ nextgroup=sdUtmpIdentifier,sdErr
 syn match sdExecKey contained /^UtmpMode=/ nextgroup=sdUtmpMode,sdErr
 syn match sdExecKey contained /^SetLoginEnvironment=/ nextgroup=sdBool,sdErr
 " --- Scheduling ---
@@ -235,7 +244,9 @@ syn match sdExecKey contained /^CPUSchedulingResetOnFork=/ nextgroup=sdBool,sdEr
 syn match sdExecKey contained /^CPUSchedulingPolicy=/ nextgroup=sdCPUSchedPol,sdErr
 syn match sdExecKey contained /^IOSchedulingClass=/ nextgroup=sdIOSchedClass,sdErr
 syn match sdExecKey contained /^IOSchedulingPriority=/ nextgroup=sdIOSchedPrio,sdErr
-syn match sdExecKey contained /^\%(CPUAffinity\|NUMAPolicy\|NUMAMask\)=/
+syn match sdExecKey contained /^CPUAffinity=/
+syn match sdExecKey contained /^NUMAPolicy=/ nextgroup=sdNUMAPolicy,sdErr
+syn match sdExecKey contained /^NUMAMask=/
 " --- Resource limits ---
 syn match sdExecKey contained /^Limit\%(CPU\|FSIZE\|DATA\|STACK\|CORE\|RSS\|NOFILE\|AS\|NPROC\|MEMLOCK\|LOCKS\|SIGPENDING\|MSGQUEUE\|NICE\|RTPRIO\|RTTIME\)=/ nextgroup=sdRlimit
 " --- Sandboxing: bool ---
@@ -265,17 +276,17 @@ syn match sdExecKey contained /^MountFlags=/ nextgroup=sdMountFlags,sdErr
 syn match sdExecKey contained /^\%(CapabilityBoundingSet\|AmbientCapabilities\)=\~\=/ contains=sdInvertFlag nextgroup=sdCapNameList
 syn match sdExecKey contained /^Capabilities=/ nextgroup=sdCapability,sdErr
 syn match sdExecKey contained /^SecureBits=/ nextgroup=sdSecureBitList
-syn match sdExecKey contained /^SystemCallFilter=\~\=/ contains=sdInvertFlag
-syn match sdExecKey contained /^SystemCallLog=\~\=/ contains=sdInvertFlag
-syn match sdExecKey contained /^SystemCallArchitectures=/
+syn match sdExecKey contained /^SystemCallFilter=\~\=/ contains=sdInvertFlag nextgroup=sdSyscallList
+syn match sdExecKey contained /^SystemCallLog=\~\=/ contains=sdInvertFlag nextgroup=sdSyscallList
+syn match sdExecKey contained /^SystemCallArchitectures=/ nextgroup=sdArchList
 syn match sdExecKey contained /^SystemCallErrorNumber=/ nextgroup=sdErrno,sdErr
-syn match sdExecKey contained /^RestrictAddressFamilies=\~\=/ contains=sdInvertFlag
+syn match sdExecKey contained /^RestrictAddressFamilies=\~\=/ contains=sdInvertFlag nextgroup=sdAddressFamilyList
 syn match sdExecKey contained /^\%(RestrictNamespaces\|DelegateNamespaces\)=\~\=/ contains=sdInvertFlag nextgroup=sdNamespace,sdBool,sdErr
-syn match sdExecKey contained /^RestrictFileSystems=\~\=/ contains=sdInvertFlag
+syn match sdExecKey contained /^RestrictFileSystems=\~\=/ contains=sdInvertFlag nextgroup=sdFilesystemList
 syn match sdExecKey contained /^RestrictNetworkInterfaces=\~\=/ contains=sdInvertFlag
-" --- Sandboxing: dash-flag keys ---
+" --- Sandboxing: dash-flag keys (free-form string value) ---
 syn match sdExecKey contained /^\%(SELinuxContext\|AppArmorProfile\|SmackProcessLabel\)=-\=/ contains=sdDashFlag
-" --- Sandboxing: BPF ---
+" --- Sandboxing: BPF (free-form, values auto-generated from kernel headers) ---
 syn match sdExecKey contained /^\%(BPFDelegateCommands\|BPFDelegateMaps\|BPFDelegatePrograms\|BPFDelegateAttachments\)=/
 " --- Stdio ---
 syn match sdExecKey contained /^StandardInput=/ nextgroup=sdStdin,sdErr
@@ -298,10 +309,14 @@ syn match sdExecKey contained /^EnvironmentFile=-\=/ contains=sdDashFlag nextgro
 syn match sdExecKey contained /^\%(PassEnvironment\|UnsetEnvironment\)=/
 " --- Credentials ---
 syn match sdExecKey contained /^\%(SetCredential\|SetCredentialEncrypted\|LoadCredential\|LoadCredentialEncrypted\|ImportCredential\)=/
-" --- Root image / mount / extension ---
-syn match sdExecKey contained /^\%(RootImageOptions\|RootImagePolicy\|RootHash\|RootHashSignature\)=/
-syn match sdExecKey contained /^\%(MountImages\|MountImagePolicy\|ExtensionImages\|ExtensionImagePolicy\|ExtensionDirectories\)=/
-syn match sdExecKey contained /^\%(BindPaths\|BindReadOnlyPaths\|TemporaryFileSystem\|ExecSearchPath\)=/
+" --- Root image / mount / extension (complex compound syntax, free-form) ---
+syn match sdExecKey contained /^\%(RootImageOptions\|RootHash\|RootHashSignature\)=/
+syn match sdExecKey contained /^\%(RootImagePolicy\|MountImagePolicy\|ExtensionImagePolicy\)=/
+syn match sdExecKey contained /^\%(MountImages\|ExtensionImages\)=/
+syn match sdExecKey contained /^ExtensionDirectories=/ nextgroup=sdExecPathList
+syn match sdExecKey contained /^\%(BindPaths\|BindReadOnlyPaths\)=/
+syn match sdExecKey contained /^TemporaryFileSystem=/
+syn match sdExecKey contained /^ExecSearchPath=/
 " --- UMask ---
 syn match sdExecKey contained /^UMask=/ nextgroup=sdOctal,sdErr
 " --- Durations ---
@@ -327,8 +342,22 @@ syn keyword sdIOSchedPrio   contained nextgroup=sdErr 0 1 2 3 4 5 6 7
 syn keyword sdCPUSchedPol   contained nextgroup=sdErr other batch idle fifo rr
 syn keyword sdMountFlags    contained nextgroup=sdErr shared slave private
 syn keyword sdSecureBits    contained nextgroup=sdErr keep-caps keep-caps-locked noroot noroot-locked no-setuid-fixup no-setuid-fixup-locked
+syn match   sdUtmpIdentifier contained nextgroup=sdErr /\S{1,4}/
+
 " Source: src/core/execute.h — ExecUtmpMode
 syn keyword sdUtmpMode      contained nextgroup=sdErr init login user
+" Source: src/shared/numa-util.c — mpol_table[]
+syn keyword sdNUMAPolicy    contained nextgroup=sdErr default preferred bind interleave local
+" Syscall filter list: contains @group names and individual syscall names
+syn match   sdSyscallList   contained /.*/ contains=sdSystemCallGroup,sdSystemCallName,sdErrItem
+" Address family list: AF_* names (too many to enumerate, free-form with error items)
+syn match   sdAddressFamily contained /AF_[A-Z0-9_]\+/
+syn match   sdAddressFamilyList contained /.*/ contains=sdAddressFamily,sdErrItem
+" Filesystem type list: contains @group names and individual filesystem names (kernel-dependent, free-form)
+" see systemd.exec(5), RestrictFileSystems=
+syn keyword sdFilesystemGroup contained @basic-api @auxiliary-api @common-block @historical-block @network @privileged-api @temporary @known
+syn match   sdFilesystemName contained /[a-z0-9_]\+/
+syn match   sdFilesystemList contained /.*/ contains=sdFilesystemGroup,sdFilesystemName,sdErrItem
 
 " --- Exec context enum types ---
 " Source: src/core/namespace.h — ProtectSystem
@@ -517,7 +546,7 @@ syn match sdServiceKey contained /^SuccessExitStatus=/ nextgroup=sdExitStatusLis
 syn match sdServiceKey contained /^OOMPolicy=/ nextgroup=sdOOMPolicy,sdErr
 syn match sdServiceKey contained /^OpenFile=/
 syn match sdServiceKey contained /^ReloadSignal=/ nextgroup=sdSignal,sdErr
-syn match sdServiceKey contained /^RefreshOnReload=\~\=/ contains=sdInvertFlag
+syn match sdServiceKey contained /^RefreshOnReload=\~\=/ contains=sdInvertFlag nextgroup=sdRefreshOnReload,sdBool,sdErr
 syn match sdServiceKey contained /^\%(USBFunctionDescriptors\|USBFunctionStrings\)=/ nextgroup=sdFilename,sdErr
 " Legacy compat keys (these moved to [Unit] but are still accepted in [Service])
 syn match sdServiceKey contained /^StartLimitInterval=/ nextgroup=sdDuration,sdErr
@@ -539,6 +568,8 @@ syn keyword sdRestartMode  contained nextgroup=sdErr normal direct debug
 syn keyword sdTimeoutMode  contained nextgroup=sdErr terminate abort kill
 " Source: src/core/unit.h — OOMPolicy
 syn keyword sdOOMPolicy    contained nextgroup=sdErr continue stop kill
+" Source: src/core/service.c — service_refresh_on_reload_table[]
+syn keyword sdRefreshOnReload contained extensions credentials
 
 " --- [Socket] ---
 syn region sdSocketBlock matchgroup=sdHeader start=/^\[Socket\]/ end=/^\[/me=e-2 contains=sdSocketKey,sdExecKey,sdKillKey,sdResCtlKey
@@ -557,9 +588,11 @@ syn match sdSocketKey contained /^IPTOS=/ nextgroup=sdIPTOS,sdUInt,sdErr
 syn match sdSocketKey contained /^TCPCongestion=/ nextgroup=sdTCPCongest
 syn match sdSocketKey contained /^Timestamping=/ nextgroup=sdSocketTimestamping,sdErr
 syn match sdSocketKey contained /^DeferTrigger=/ nextgroup=sdDeferTrigger,sdBool,sdErr
-syn match sdSocketKey contained /^SocketProtocol=/
-syn match sdSocketKey contained /^\%(SocketUser\|SocketGroup\)=/
-syn match sdSocketKey contained /^\%(Symlinks\|FileDescriptorName\)=/
+syn match sdSocketKey contained /^SocketProtocol=/ nextgroup=sdSocketProtocol,sdErr
+syn match sdSocketKey contained /^SocketUser=/ nextgroup=sdUser,sdErr
+syn match sdSocketKey contained /^SocketGroup=/ nextgroup=sdUser,sdErr
+syn match sdSocketKey contained /^Symlinks=/ nextgroup=sdFileList
+syn match sdSocketKey contained /^FileDescriptorName=/
 syn match sdSocketKey contained /^\%(SmackLabel\|SmackLabelIPIn\|SmackLabelIPOut\)=/
 
 " --- [Socket] value types ---
@@ -570,6 +603,8 @@ syn keyword sdTCPCongest contained nextgroup=sdErr westwood veno cubic lp
 syn keyword sdSocketTimestamping contained nextgroup=sdErr off us ns
 " Source: src/core/socket.h — SocketDeferTrigger
 syn keyword sdDeferTrigger contained nextgroup=sdErr patient
+" Source: src/core/load-fragment.c — parse_socket_protocol()
+syn keyword sdSocketProtocol contained nextgroup=sdErr udplite sctp mptcp
 
 " --- [Timer] ---
 syn region sdTimerBlock matchgroup=sdHeader start=/^\[Timer\]/ end=/^\[/me=e-2 contains=sdTimerKey
@@ -590,7 +625,8 @@ syn match sdAutomountKey contained /^TimeoutIdleSec=/ nextgroup=sdDuration,sdErr
 " --- [Mount] ---
 syn region sdMountBlock matchgroup=sdHeader start=/^\[Mount\]/ end=/^\[/me=e-2 contains=sdMountKey,sdAutomountKey,sdExecKey,sdKillKey,sdResCtlKey
 syn match sdMountKey contained /^\%(SloppyOptions\|LazyUnmount\|ForceUnmount\|ReadWriteOnly\)=/ nextgroup=sdBool,sdErr
-syn match sdMountKey contained /^\%(What\|Type\|Options\)=/
+syn match sdMountKey contained /^What=/ nextgroup=sdFilename,sdErr
+syn match sdMountKey contained /^\%(Type\|Options\)=/
 syn match sdMountKey contained /^Where=/ nextgroup=sdFilename,sdErr
 syn match sdMountKey contained /^TimeoutSec=/ nextgroup=sdDuration,sdErr
 syn match sdMountKey contained /^DirectoryMode=/ nextgroup=sdOctal,sdErr
@@ -711,6 +747,10 @@ hi def link sdControllerName    sdValue
 hi def link sdCgroupVer         sdValue
 hi def link sdCPUWeight         sdValue
 hi def link sdUtmpMode          sdValue
+hi def link sdNUMAPolicy        sdValue
+hi def link sdAddressFamily     sdValue
+hi def link sdRefreshOnReload   sdValue
+hi def link sdSocketProtocol    sdValue
 hi def link sdSocketTimestamping sdValue
 hi def link sdDeferTrigger      sdValue
 hi def link sdArch              sdValue
@@ -718,6 +758,9 @@ hi def link sdUserGroup         sdValue
 hi def link sdSystemCallGroup   sdValue
 hi def link sdSystemCallName    sdValue
 hi def link sdErrno             sdValue
+hi def link sdUtmpIdentifier    sdValue
+hi def link sdFilesystemGroup   sdValue
+"hi def link sdFilesystemName    sdValue " free-form, do not highlight
 
 " --- Symbol/flag links ---
 hi def link sdExecFlag          sdSymbol
