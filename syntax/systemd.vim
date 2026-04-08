@@ -249,8 +249,8 @@ syn match   sdExecFile      contained /\S\+/ nextgroup=sdExecArgs
 syn match   sdExecArgs      contained /.*/ contains=sdEnvArg
 syn match   sdEnvDefs       contained /.*/ contains=sdEnvDef
 syn match   sdEnvDef        contained /\i\+=/he=e-1
-syn match   sdExecPathList  contained /.*/ contains=sdExecPath,sdErr
-syn match   sdExecPath      contained /-\=+\=\/\S\+\s*/
+syn match   sdExecPathList  contained /.*/ contains=sdExecPath,sdErrItem
+syn match   sdExecPath      contained /-\=+\=\/\S\+/
 syn keyword sdStdin         contained nextgroup=sdErr null tty tty-force tty-fail socket data
 syn match   sdStdin         contained nextgroup=sdErr /\%(fd\|file\):\S\+/
 syn match   sdStdout        contained nextgroup=sdErr /\%(syslog\|kmsg\|journal\)\%(+console\)\=/
