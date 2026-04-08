@@ -95,9 +95,15 @@ syn match sdCalendar contained /\%([A-Za-z,.]\+\s+\)\=\%([0-9*.,/-]\+\%(\s\+[0-9
 "                               annually → *-01-01 00:00:00
 "                                  *:2/3 → *-*-* *:02/3:00
 
-" --- Filenames ---
-syn match sdFilename       contained nextgroup=sdErr /\/\S*/
-syn match sdFileList       contained /.\+/ contains=sdFilename,sdErrItem
+" --- Filenames and paths ---
+" sdFilename: relative file name or path (e.g. RuntimeDirectory=foodaemon)
+syn match sdFilename       contained nextgroup=sdErr /\S\+/
+" sdFilepath: absolute file path, optionally starting with a %-specifier that
+"   resolves to an absolute path (e.g. PIDFile=%t/foo.pid)
+"   Specifiers producing absolute paths: %c %C %d %D %E %f %h %L %r %R %S %s %t %T %V %y %Y
+syn match sdFilepath       contained nextgroup=sdErr /\%(%[cCdDEfhLrRSstTVyY]\|\/\)\S*/ contains=sdFormatStr
+" sdFileList: whitespace-separated list of absolute paths
+syn match sdFileList       contained /.\+/ contains=sdFilepath,sdErrItem
 
 " --- Unit names ---
 syn match sdUnitName       contained /\S\+\.\(automount\|mount\|swap\|socket\|service\|target\|path\|timer\|device\|slice\|scope\)\_s/
@@ -220,9 +226,9 @@ syn match   sdControllerList contained /.\+/ contains=sdControllerName,sdErrItem
 " --- Exec commands ---
 syn match sdExecKey contained /^Exec\%(Start\%(Pre\|Post\|\)\|Reload\|Stop\|StopPost\|Condition\)=[-@:|+!]*/ contains=sdExecFlag nextgroup=sdExecFile,sdErr
 " --- Paths ---
-syn match sdExecKey contained /^WorkingDirectory=-\=/ contains=sdDashFlag nextgroup=sdFilename,sdErr
-syn match sdExecKey contained /^\%(RootDirectory\|RootImage\|RootVerity\|RootMStack\|TTYPath\)=/ nextgroup=sdFilename,sdErr
-syn match sdExecKey contained /^\%(UserNamespace\|NetworkNamespace\|IPCNamespace\)Path=/ nextgroup=sdFilename,sdErr
+syn match sdExecKey contained /^WorkingDirectory=-\=/ contains=sdDashFlag nextgroup=sdFilepath,sdErr
+syn match sdExecKey contained /^\%(RootDirectory\|RootImage\|RootVerity\|RootMStack\|TTYPath\)=/ nextgroup=sdFilepath,sdErr
+syn match sdExecKey contained /^\%(UserNamespace\|NetworkNamespace\|IPCNamespace\)Path=/ nextgroup=sdFilepath,sdErr
 " --- Directories ---
 syn match sdExecKey contained /^\%(Runtime\|State\|Cache\|Logs\|Configuration\)Directory=/ nextgroup=sdFilename,sdErr
 syn match sdExecKey contained /^\%(Runtime\|State\|Cache\|Logs\|Configuration\)DirectoryMode=/ nextgroup=sdOctal,sdErr
@@ -305,7 +311,7 @@ syn match sdExecKey contained /^LogRateLimitBurst=/ nextgroup=sdUInt,sdErr
 syn match sdExecKey contained /^\%(LogExtraFields\|LogFilterPatterns\)=/
 " --- Environment ---
 syn match sdExecKey contained /^Environment=/ nextgroup=sdEnvDefs
-syn match sdExecKey contained /^EnvironmentFile=-\=/ contains=sdDashFlag nextgroup=sdFilename,sdErr
+syn match sdExecKey contained /^EnvironmentFile=-\=/ contains=sdDashFlag nextgroup=sdFilepath,sdErr
 syn match sdExecKey contained /^\%(PassEnvironment\|UnsetEnvironment\)=/
 " --- Credentials ---
 syn match sdExecKey contained /^\%(SetCredential\|SetCredentialEncrypted\|LoadCredential\|LoadCredentialEncrypted\|ImportCredential\)=/
@@ -429,7 +435,7 @@ syn match sdResCtlKey contained /^DisableControllers=/ nextgroup=sdControllerLis
 syn match sdResCtlKey contained /^\%(MemoryAccounting\|IOAccounting\|TasksAccounting\|IPAccounting\|CoredumpReceive\)=/ nextgroup=sdBool,sdErr
 " --- IP filtering ---
 syn match sdResCtlKey contained /^\%(IPAddressAllow\|IPAddressDeny\)=/
-syn match sdResCtlKey contained /^\%(IPIngressFilterPath\|IPEgressFilterPath\)=/ nextgroup=sdFilename,sdErr
+syn match sdResCtlKey contained /^\%(IPIngressFilterPath\|IPEgressFilterPath\)=/ nextgroup=sdFilepath,sdErr
 " --- Managed OOM ---
 syn match sdResCtlKey contained /^\%(ManagedOOMSwap\|ManagedOOMMemoryPressure\)=/ nextgroup=sdManagedOOMMode,sdErr
 syn match sdResCtlKey contained /^ManagedOOMMemoryPressureLimit=/ nextgroup=sdPercent,sdErr
@@ -479,7 +485,7 @@ syn match   sdIOLimit         contained /\/\S\+\s\+/ nextgroup=sdDatasize,sdInfi
 syn region sdUnitBlock matchgroup=sdHeader start=/^\[Unit\]/ end=/^\[/me=e-2 contains=sdUnitKey
 syn match sdUnitKey contained /^Description=/
 syn match sdUnitKey contained /^Documentation=/ nextgroup=sdDocUri
-syn match sdUnitKey contained /^SourcePath=/ nextgroup=sdFilename,sdErr
+syn match sdUnitKey contained /^SourcePath=/ nextgroup=sdFilepath,sdErr
 syn match sdUnitKey contained /^\%(Requires\|RequiresOverridable\|Requisite\|RequisiteOverridable\|Wants\|Binds\=To\|PartOf\|Upholds\|Conflicts\|Before\|After\|OnSuccess\|OnFailure\|Propagates\=ReloadTo\|ReloadPropagatedFrom\|PropagateReloadFrom\|PropagatesStopTo\|StopPropagatedFrom\|JoinsNamespaceOf\)=/ nextgroup=sdUnitList
 syn match sdUnitKey contained /^\%(OnFailureIsolate\|IgnoreOnIsolate\|IgnoreOnSnapshot\|StopWhenUnneeded\|RefuseManualStart\|RefuseManualStop\|AllowIsolate\|DefaultDependencies\|SurviveFinalKillSignal\)=/ nextgroup=sdBool,sdErr
 syn match sdUnitKey contained /^\%(OnSuccess\|OnFailure\)JobMode=/ nextgroup=sdJobMode,sdErr
@@ -494,7 +500,7 @@ syn match sdUnitKey contained /^CollectMode=/ nextgroup=sdCollectMode,sdErr
 " ConditionXXX/AssertXXX.
 " Flags: '|' (trigger) and '!' (negate) appear between '=' and the value.
 " condition_path types take a path value:
-syn match sdUnitKey contained /^\%(Condition\|Assert\)\%(PathExists\|PathExistsGlob\|PathIsDirectory\|PathIsMountPoint\|PathIsReadWrite\|PathIsSymbolicLink\|PathIsEncrypted\|PathIsSocket\|DirectoryNotEmpty\|FileNotEmpty\|FileIsExecutable\)=|\=!\=/ contains=sdConditionFlag nextgroup=sdFilename,sdErr
+syn match sdUnitKey contained /^\%(Condition\|Assert\)\%(PathExists\|PathExistsGlob\|PathIsDirectory\|PathIsMountPoint\|PathIsReadWrite\|PathIsSymbolicLink\|PathIsEncrypted\|PathIsSocket\|DirectoryNotEmpty\|FileNotEmpty\|FileIsExecutable\)=|\=!\=/ contains=sdConditionFlag nextgroup=sdFilepath,sdErr
 syn match sdUnitKey contained /^\%(Condition\|Assert\)NeedsUpdate=|\=!\=/ contains=sdConditionFlag nextgroup=sdCondUpdateDir,sdErr
 " condition_string types with specific value groups:
 syn match sdUnitKey contained /^\%(Condition\|Assert\)Architecture=|\=!\=/ contains=sdConditionFlag nextgroup=sdArch,sdErr
@@ -532,7 +538,7 @@ syn match sdServiceKey contained /^ExitType=/ nextgroup=sdExitType,sdErr
 syn match sdServiceKey contained /^Restart=/ nextgroup=sdRestartType,sdErr
 syn match sdServiceKey contained /^RestartMode=/ nextgroup=sdRestartMode,sdErr
 syn match sdServiceKey contained /^\%(RemainAfterExit\|GuessMainPID\|PermissionsStartOnly\|RootDirectoryStartOnly\|NonBlocking\)=/ nextgroup=sdBool,sdErr
-syn match sdServiceKey contained /^PIDFile=/ nextgroup=sdFilename,sdErr
+syn match sdServiceKey contained /^PIDFile=/ nextgroup=sdFilepath,sdErr
 syn match sdServiceKey contained /^BusName=/
 syn match sdServiceKey contained /^NotifyAccess=/ nextgroup=sdNotifyType,sdErr
 syn match sdServiceKey contained /^Sockets=/ nextgroup=sdUnitList
@@ -547,7 +553,7 @@ syn match sdServiceKey contained /^OOMPolicy=/ nextgroup=sdOOMPolicy,sdErr
 syn match sdServiceKey contained /^OpenFile=/
 syn match sdServiceKey contained /^ReloadSignal=/ nextgroup=sdSignal,sdErr
 syn match sdServiceKey contained /^RefreshOnReload=\~\=/ contains=sdInvertFlag nextgroup=sdRefreshOnReload,sdBool,sdErr
-syn match sdServiceKey contained /^\%(USBFunctionDescriptors\|USBFunctionStrings\)=/ nextgroup=sdFilename,sdErr
+syn match sdServiceKey contained /^\%(USBFunctionDescriptors\|USBFunctionStrings\)=/ nextgroup=sdFilepath,sdErr
 " Legacy compat keys (these moved to [Unit] but are still accepted in [Service])
 syn match sdServiceKey contained /^StartLimitInterval=/ nextgroup=sdDuration,sdErr
 syn match sdServiceKey contained /^StartLimitAction=/ nextgroup=sdEmergencyAction,sdErr
@@ -574,7 +580,7 @@ syn keyword sdRefreshOnReload contained extensions credentials
 " --- [Socket] ---
 syn region sdSocketBlock matchgroup=sdHeader start=/^\[Socket\]/ end=/^\[/me=e-2 contains=sdSocketKey,sdExecKey,sdKillKey,sdResCtlKey
 syn match sdSocketKey contained /^Listen\%(Stream\|Datagram\|SequentialPacket\|FIFO\|Special\|Netlink\|MessageQueue\|USBFunction\)=/
-syn match sdSocketKey contained /^Listen\%(FIFO\|Special\)=/ nextgroup=sdFilename,sdErr
+syn match sdSocketKey contained /^Listen\%(FIFO\|Special\)=/ nextgroup=sdFilepath,sdErr
 syn match sdSocketKey contained /^\%(SocketMode\|DirectoryMode\)=/ nextgroup=sdOctal,sdErr
 syn match sdSocketKey contained /^\%(Backlog\|MaxConnections\|MaxConnectionsPerSource\|Priority\|IPTTL\|Mark\|KeepAliveProbes\|MessageQueueMaxMessages\|MessageQueueMessageSize\)=/ nextgroup=sdUInt,sdErr
 syn match sdSocketKey contained /^\%(ReceiveBuffer\|SendBuffer\|PipeSize\)=/ nextgroup=sdDatasize,sdUInt,sdErr
@@ -617,7 +623,7 @@ syn match sdTimerKey contained /^Unit=/ nextgroup=sdUnitList
 
 " --- [Automount] ---
 syn region sdAutoMountBlock matchgroup=sdHeader start=/^\[Automount\]/ end=/^\[/me=e-2 contains=sdAutomountKey
-syn match sdAutomountKey contained /^Where=/ nextgroup=sdFilename,sdErr
+syn match sdAutomountKey contained /^Where=/ nextgroup=sdFilepath,sdErr
 syn match sdAutomountKey contained /^DirectoryMode=/ nextgroup=sdOctal,sdErr
 syn match sdAutomountKey contained /^ExtraOptions=/
 syn match sdAutomountKey contained /^TimeoutIdleSec=/ nextgroup=sdDuration,sdErr
@@ -625,22 +631,22 @@ syn match sdAutomountKey contained /^TimeoutIdleSec=/ nextgroup=sdDuration,sdErr
 " --- [Mount] ---
 syn region sdMountBlock matchgroup=sdHeader start=/^\[Mount\]/ end=/^\[/me=e-2 contains=sdMountKey,sdAutomountKey,sdExecKey,sdKillKey,sdResCtlKey
 syn match sdMountKey contained /^\%(SloppyOptions\|LazyUnmount\|ForceUnmount\|ReadWriteOnly\)=/ nextgroup=sdBool,sdErr
-syn match sdMountKey contained /^What=/ nextgroup=sdFilename,sdErr
+syn match sdMountKey contained /^What=/ nextgroup=sdFilepath,sdErr
 syn match sdMountKey contained /^\%(Type\|Options\)=/
-syn match sdMountKey contained /^Where=/ nextgroup=sdFilename,sdErr
+syn match sdMountKey contained /^Where=/ nextgroup=sdFilepath,sdErr
 syn match sdMountKey contained /^TimeoutSec=/ nextgroup=sdDuration,sdErr
 syn match sdMountKey contained /^DirectoryMode=/ nextgroup=sdOctal,sdErr
 
 " --- [Swap] ---
 syn region sdSwapBlock matchgroup=sdHeader start=/^\[Swap\]/ end=/^\[/me=e-2 contains=sdSwapKey,sdExecKey,sdKillKey,sdResCtlKey
-syn match sdSwapKey contained /^What=/ nextgroup=sdFilename,sdErr
+syn match sdSwapKey contained /^What=/ nextgroup=sdFilepath,sdErr
 syn match sdSwapKey contained /^Priority=/ nextgroup=sdInt,sdErr
 syn match sdSwapKey contained /^Options=/
 syn match sdSwapKey contained /^TimeoutSec=/ nextgroup=sdDuration,sdErr
 
 " --- [Path] ---
 syn region sdPathBlock matchgroup=sdHeader start=/^\[Path\]/ end=/^\[/me=e-2 contains=sdPathKey
-syn match sdPathKey contained /^\%(PathExists\|PathExistsGlob\|PathChanged\|PathModified\|DirectoryNotEmpty\)=/ nextgroup=sdFilename,sdErr
+syn match sdPathKey contained /^\%(PathExists\|PathExistsGlob\|PathChanged\|PathModified\|DirectoryNotEmpty\)=/ nextgroup=sdFilepath,sdErr
 syn match sdPathKey contained /^MakeDirectory=/ nextgroup=sdBool,sdErr
 syn match sdPathKey contained /^DirectoryMode=/ nextgroup=sdOctal,sdErr
 syn match sdPathKey contained /^Unit=/ nextgroup=sdUnitList
