@@ -25,9 +25,6 @@ syn match sdErrItem contained /\S\+/ contains=sdErr
 syn match   sdComment /^[;#].*/ contains=sdTodo containedin=ALL
 syn keyword sdTodo contained TODO XXX FIXME NOTE
 
-" .include
-syn match sdInclude /^.include/ nextgroup=sdFilename
-
 " format strings and environment args
 syn match sdFormatStr contained /%[bCEfhHiIjJLmnNpPsStTgGuUvV%]/ containedin=ALLBUT,sdComment,sdErr
 syn match sdEnvArg    contained /\$\i\+\|\${\i\+}/
