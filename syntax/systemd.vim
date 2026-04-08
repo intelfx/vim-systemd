@@ -97,12 +97,12 @@ syn match sdCalendar contained /\%([A-Za-z,.]\+\s+\)\=\%([0-9*.,/-]\+\%(\s\+[0-9
 
 " --- Filenames ---
 syn match sdFilename       contained nextgroup=sdErr /\/\S*/
-syn match sdFileList       contained /.*/ contains=sdFilename,sdErr
+syn match sdFileList       contained /.*/ contains=sdFilename,sdErrItem
 
 " --- Unit names ---
 syn match sdUnitName       contained /\S\+\.\(automount\|mount\|swap\|socket\|service\|target\|path\|timer\|device\|slice\|scope\)\_s/
 syn match sdUnit           contained /\S\+/ contains=sdUnitName,sdErr nextgroup=sdErr
-syn match sdUnitList       contained /.\+/ contains=sdUnitName,sdErr
+syn match sdUnitList       contained /.\+/ contains=sdUnitName,sdErrItem
 
 " --- Users ---
 syn match sdUser           contained nextgroup=sdErr /\d\+\|[A-Za-z_][A-Za-z0-9_-]*/ contains=sdFormatStr
