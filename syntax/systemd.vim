@@ -104,6 +104,14 @@ syn match sdFilename       contained nextgroup=sdErr /\S\+/
 syn match sdFilepath       contained nextgroup=sdErr /\%(%[cCdDEfhLrRSstTVyY]\|\/\)\S*/ contains=sdFormatStr
 " sdFileList: whitespace-separated list of absolute paths
 syn match sdFileList       contained /.\+/ contains=sdFilepath,sdErrItem
+" sdColonPath{List,Sep,Err}: colon-separated list of absolute paths (e.g. ExecSearchPath=)
+"   Chain: key → sdColonPathList or sdColonPathErr
+"          sdColonPathList → sdColonPathSep or sdColonPathErr
+"          sdColonPathSep  → sdColonPathList or sdColonPathErr
+"          sdColonPathErr  → sdColonPathSep or sdColonPathList or sdColonPathErr (recovery)
+syn match sdColonPathErr  contained /\%(:\+\|[^:]\+\)/ keepend contains=sdErr nextgroup=sdColonPathSep,sdColonPathList,sdColonPathErr
+syn match sdColonPathSep  contained /:/ nextgroup=sdColonPathList,sdColonPathErr
+syn match sdColonPathList contained /\%(%[cCdDEfhLrRSstTVyY]\|\/\)[^:]*/ contains=sdFormatStr nextgroup=sdColonPathSep,sdColonPathErr
 
 " --- Unit names ---
 syn match sdUnitName       contained /\S\+\.\(automount\|mount\|swap\|socket\|service\|target\|path\|timer\|device\|slice\|scope\)\_s/
@@ -322,7 +330,7 @@ syn match sdExecKey contained /^\%(MountImages\|ExtensionImages\)=/
 syn match sdExecKey contained /^ExtensionDirectories=/ nextgroup=sdExecPathList
 syn match sdExecKey contained /^\%(BindPaths\|BindReadOnlyPaths\)=/
 syn match sdExecKey contained /^TemporaryFileSystem=/
-syn match sdExecKey contained /^ExecSearchPath=/
+syn match sdExecKey contained /^ExecSearchPath=/ nextgroup=sdColonPathList,sdColonPathErr
 " --- UMask ---
 syn match sdExecKey contained /^UMask=/ nextgroup=sdOctal,sdErr
 " --- Durations ---
@@ -771,6 +779,7 @@ hi def link sdFilesystemGroup   sdValue
 " --- Symbol/flag links ---
 hi def link sdExecFlag          sdSymbol
 hi def link sdConditionFlag     sdSymbol
+hi def link sdColonPathSep      sdSymbol
 hi def link sdDashFlag          sdSymbol
 hi def link sdInvertFlag        sdSymbol
 hi def link sdCapOps            sdSymbol
