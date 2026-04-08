@@ -97,7 +97,7 @@ syn match sdCalendar contained /\%([A-Za-z,.]\+\s+\)\=\%([0-9*.,/-]\+\%(\s\+[0-9
 
 " --- Filenames ---
 syn match sdFilename       contained nextgroup=sdErr /\/\S*/
-syn match sdFileList       contained /.*/ contains=sdFilename,sdErrItem
+syn match sdFileList       contained /.\+/ contains=sdFilename,sdErrItem
 
 " --- Unit names ---
 syn match sdUnitName       contained /\S\+\.\(automount\|mount\|swap\|socket\|service\|target\|path\|timer\|device\|slice\|scope\)\_s/
@@ -107,7 +107,7 @@ syn match sdUnitList       contained /.\+/ contains=sdUnitName,sdErrItem
 " --- Users ---
 syn match sdUser           contained nextgroup=sdErr /\d\+\|[A-Za-z_][A-Za-z0-9_-]*/ contains=sdFormatStr
 syn match sdUser           contained nextgroup=sdErr /%[A-Za-z%]\+/ contains=sdFormatStr
-syn match sdUserList       contained nextgroup=sdErr /.*/ contains=sdUser,sdErrItem
+syn match sdUserList       contained nextgroup=sdErr /.\+/ contains=sdUser,sdErrItem
 syn keyword sdUserGroup    contained @system
 
 " --- Resource limits ---
@@ -159,13 +159,13 @@ syn match sdSignalList /.\+/     contained contains=sdSignalName,sdByteVal,sdErr
 syn keyword sdExitStatusName contained SUCCESS FAILURE INVALIDARGUMENT NOTIMPLEMENTED NOPERMISSION NOTINSTALLED NOTCONFIGURED NOTRUNNING USAGE DATAERR NOINPUT NOUSER NOHOST UNAVAILABLE SOFTWARE OSERR OSFILE CANTCREAT IOERR TEMPFAIL PROTOCOL NOPERM CONFIG CHDIR NICE FDS EXEC MEMORY LIMITS OOM_ADJUST SIGNAL_MASK STDIN STDOUT CHROOT IOPRIO TIMERSLACK SECUREBITS SETSCHEDULER CPUAFFINITY GROUP USER CAPABILITIES CGROUP SETSID CONFIRM STDERR PAM NETWORK NAMESPACE NO_NEW_PRIVILEGES SECCOMP SELINUX_CONTEXT PERSONALITY APPARMOR ADDRESS_FAMILIES RUNTIME_DIRECTORY CHOWN SMACK_PROCESS_LABEL KEYRING STATE_DIRECTORY CACHE_DIRECTORY LOGS_DIRECTORY CONFIGURATION_DIRECTORY NUMA_POLICY CREDENTIALS BPF KSM MEMORY_THP EXCEPTION
 syn match sdExitStatusNum  /\d\+/ contained contains=sdByteVal nextgroup=sdErr
 syn match sdExitStatus     /\S\+/ contained contains=sdExitStatusName,sdExitStatusNum nextgroup=sdErr
-syn match sdExitStatusList /.*/   contained contains=sdExitStatusName,sdSignalName,sdByteVal,sdErrItem
+syn match sdExitStatusList /.\+/   contained contains=sdExitStatusName,sdSignalName,sdByteVal,sdErrItem
 
 " see capabilities(7), cap_text_formats(7)
 "   - generated with `systemd-analyze capabilities`
 syn case ignore
 syn keyword sdCapName       contained CAP_CHOWN CAP_DAC_OVERRIDE CAP_DAC_READ_SEARCH CAP_FOWNER CAP_FSETID CAP_KILL CAP_SETGID CAP_SETUID CAP_SETPCAP CAP_LINUX_IMMUTABLE CAP_NET_BIND_SERVICE CAP_NET_BROADCAST CAP_NET_ADMIN CAP_NET_RAW CAP_IPC_LOCK CAP_IPC_OWNER CAP_SYS_MODULE CAP_SYS_RAWIO CAP_SYS_CHROOT CAP_SYS_PTRACE CAP_SYS_PACCT CAP_SYS_ADMIN CAP_SYS_BOOT CAP_SYS_NICE CAP_SYS_RESOURCE CAP_SYS_TIME CAP_SYS_TTY_CONFIG CAP_MKNOD CAP_LEASE CAP_AUDIT_WRITE CAP_AUDIT_CONTROL CAP_SETFCAP CAP_MAC_OVERRIDE CAP_MAC_ADMIN CAP_SYSLOG CAP_WAKE_ALARM CAP_BLOCK_SUSPEND CAP_AUDIT_READ CAP_PERFMON CAP_BPF CAP_CHECKPOINT_RESTORE
-syn match   sdCapNameList   contained /.*/ contains=sdAnyCapName,sdErrItem
+syn match   sdCapNameList   contained /.\+/ contains=sdAnyCapName,sdErrItem
 syn match   sdAnyCapName    contained /CAP_[A-Z_]\+/ contains=sdCapName
 syn case match
 syn cluster sdCap           contains=sdCapName,sdCapOps,sdCapFlags
@@ -207,11 +207,11 @@ syn keyword sdArch         contained nextgroup=sdErr native alpha arc arc-be arm
 "   - additional values that are only valid in the SystemCallArchitectures= directive
 "   - sdArchList is only used for that directive, so it allows both classes of values
 syn keyword sdArchFilter   contained nextgroup=sdErr x32 mips64-n32 mips64-le-n32
-syn match   sdArchList     contained /.*/ contains=sdArch,sdArchFilter,sdErrItem
+syn match   sdArchList     contained /.\+/ contains=sdArch,sdArchFilter,sdErrItem
 
 " Source: src/basic/cgroup-util.c — cgroup_controller_table[]
 syn keyword sdControllerName contained cpu cpuacct cpuset io blkio memory devices pids bpf-firewall bpf-devices bpf-foreign bpf-socket-bind bpf-restrict-network-interfaces bpf-bind-network-interface
-syn match   sdControllerList contained /.*/ contains=sdControllerName,sdErrItem
+syn match   sdControllerList contained /.\+/ contains=sdControllerName,sdErrItem
 
 " === 5. Exec context keys and value types ===
 " (for [Service|Socket|Mount|Swap])
@@ -324,10 +324,10 @@ syn match sdExecKey contained /^\%(TimeoutSec\|TimeoutCleanSec\)=/ nextgroup=sdD
 
 " --- Exec context value types ---
 syn match   sdExecFile      contained /\S\+/ nextgroup=sdExecArgs
-syn match   sdExecArgs      contained /.*/ contains=sdEnvArg
-syn match   sdEnvDefs       contained /.*/ contains=sdEnvDef
+syn match   sdExecArgs      contained /.\+/ contains=sdEnvArg
+syn match   sdEnvDefs       contained /.\+/ contains=sdEnvDef
 syn match   sdEnvDef        contained /\i\+=/he=e-1
-syn match   sdExecPathList  contained /.*/ contains=sdExecPath,sdErrItem
+syn match   sdExecPathList  contained /.\+/ contains=sdExecPath,sdErrItem
 syn match   sdExecPath      contained /-\=+\=\/\S\+/
 syn keyword sdStdin         contained nextgroup=sdErr null tty tty-force tty-fail socket data
 syn match   sdStdin         contained nextgroup=sdErr /\%(fd\|file\):\S\+/
@@ -349,15 +349,15 @@ syn keyword sdUtmpMode      contained nextgroup=sdErr init login user
 " Source: src/shared/numa-util.c — mpol_table[]
 syn keyword sdNUMAPolicy    contained nextgroup=sdErr default preferred bind interleave local
 " Syscall filter list: contains @group names and individual syscall names
-syn match   sdSyscallList   contained /.*/ contains=sdSystemCallGroup,sdSystemCallName,sdErrItem
+syn match   sdSyscallList   contained /.\+/ contains=sdSystemCallGroup,sdSystemCallName,sdErrItem
 " Address family list: AF_* names (too many to enumerate, free-form with error items)
 syn match   sdAddressFamily contained /AF_[A-Z0-9_]\+/
-syn match   sdAddressFamilyList contained /.*/ contains=sdAddressFamily,sdErrItem
+syn match   sdAddressFamilyList contained /.\+/ contains=sdAddressFamily,sdErrItem
 " Filesystem type list: contains @group names and individual filesystem names (kernel-dependent, free-form)
 " see systemd.exec(5), RestrictFileSystems=
 syn keyword sdFilesystemGroup contained @basic-api @auxiliary-api @common-block @historical-block @network @privileged-api @temporary @known
 syn match   sdFilesystemName contained /[a-z0-9_]\+/
-syn match   sdFilesystemList contained /.*/ contains=sdFilesystemGroup,sdFilesystemName,sdErrItem
+syn match   sdFilesystemList contained /.\+/ contains=sdFilesystemGroup,sdFilesystemName,sdErrItem
 
 " --- Exec context enum types ---
 " Source: src/core/namespace.h — ProtectSystem
