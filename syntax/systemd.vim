@@ -676,7 +676,6 @@ syn match sdScopeKey contained /^OOMPolicy=/ nextgroup=sdOOMPolicy,sdErr
 " --- Base highlights ---
 hi def link sdComment       Comment
 hi def link sdTodo          Todo
-hi def link sdInclude       PreProc
 hi def link sdHeader        Type
 hi def link sdEnvArg        PreProc
 hi def link sdFormatStr     Special
