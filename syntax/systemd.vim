@@ -231,7 +231,7 @@ syn match   sdControllerList contained /.\+/ contains=sdControllerName,sdErrItem
 " see systemd.exec(5)
 
 " --- Exec commands ---
-syn match sdExecKey contained /^Exec\%(Start\%(Pre\|Post\|\)\|Reload\|Stop\|StopPost\|Condition\)=[-@:|+!]*/ contains=sdExecFlag nextgroup=sdExecFile,sdErr
+syn match sdExecKey contained /^Exec\%(Start\%(Pre\|Post\)\=\|Reload\%(Post\)\=\|Stop\%(Pre\|Post\)\=\|Condition\)=[-@:|+!]*/ contains=sdExecFlag nextgroup=sdExecFile,sdErr
 " --- Paths ---
 syn match sdExecKey contained /^WorkingDirectory=-\=/ contains=sdDashFlag nextgroup=sdFilepath,sdErr
 syn match sdExecKey contained /^\%(RootDirectory\|RootImage\|RootVerity\|RootMStack\|TTYPath\)=/ nextgroup=sdFilepath,sdErr
