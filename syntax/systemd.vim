@@ -45,19 +45,38 @@ syn match sdByteVal  contained /\<\%(\d\|\d\d\|1\d\d\|2[0-4]\d\|25[0-5]\)\>/
 syn match sdDuration contained nextgroup=sdErr /\d\+/
 syn match sdDuration contained nextgroup=sdErr /\%(\d\+\s*\%(usec\|msec\|seconds\=\|minutes\=\|hours\=\|days\=\|weeks\=\|months\=\|years\=\|us\|ms\|sec\|min\|hr\|[smhdwMy]\)\s*\)\+/
 
-syn keyword sdCalendarDayNames contained Monday Tuesday Wednesday Thursday Friday Saturday Sunday Mon Tue Wed Thu Fri Sat Sun
-syn keyword sdCalendarInterval contained minutely hourly daily monthly weekly yearly quarterly semiannually
-syn match sdCalendarDays contained /\i\+\,\=\|\i\+\.\.\i\+\,\=/ contains=sdCalendarDayNames,sdErr
-syn match sdCalendarRepeat contained /\/\d\+\%(\.\d\+\)\=/
-syn match sdCalendarSep  contained /[,~:-]\|../
-syn match sdCalendarYear contained /\d{4}\|\*/
-syn match sdCalendarMonth contained /0\=[1-9]\|1[012]\|*/
-syn match sdCalendarDay contained /0\=[1-9]\|12[0-9]\|3[01]\|*/
-syn match sdCalendarHour contained /[01]\=[0-9]\|2[0-4]\|*/
-syn match sdCalendarMinute contained /[0-5]\=[0-9]\|*/
-syn match sdCalendarSecond contained /\%([0-5]\=[0-9]\|60\)\%(\.\d+\)\=\|\*/
-syn match sdCalendarTZ contained /UTC\|\i\+\/\i\+/
-syn match sdCalendar contained /\%([A-Za-z,.]\+\s+\)\=\%([0-9*.,/-]\+\%(\s\+[0-9*.,/:]\+\)\=\|[0-9*.,/:]\+\)\%(\s\+\w\+\/\w\+\)/
+" A calendar event has the form:  [WEEKDAYS] [DATE] [TIME] [TIMEZONE]
+"   WEEKDAYS  comma/range list of English weekday names, abbreviated (Wed) or
+"             full (Wednesday), case-insensitive, e.g. 'Mon..Fri', 'Sat,Sun'
+"   DATE      [YEAR-]MONTH-DAY; each component is '*' or a value list; '~'
+"             before the day counts from the end of the month (e.g. '*-02~03')
+"   TIME      HOUR:MINUTE[:SECOND]; the seconds may carry a decimal fraction
+"   TIMEZONE  'UTC', a local timezone, or an IANA 'Area/Location' name
+"   Value lists use ',' to separate, '..' for ranges and '/N' for repetition.
+" A whole expression may instead be one of the case-insensitive shorthands
+" below, optionally followed by a timezone.
+" Source: src/shared/calendarspec.c — calendar_spec_from_string()
+" Each field self-consumes the leading whitespace that separates it from the
+" previous one and chains to the fields that may follow via nextgroup; the
+" trailing sdErr catches anything that is not a valid continuation.
+syn case ignore
+" Matched (not a keyword) because `syn iskeyword` includes '-', which would
+" make Vim treat the backwards-compat range form 'Mon-Fri' as a single token.
+" The trailing \a\@! anchors the name so e.g. 'Mont' or 'Monday' are handled.
+syn match   sdCalWeekday   contained /\%(mon\%(day\)\=\|tue\%(sday\)\=\|wed\%(nesday\)\=\|thu\%(rsday\)\=\|fri\%(day\)\=\|sat\%(urday\)\=\|sun\%(day\)\=\)\a\@!/
+syn keyword sdCalShorthand contained nextgroup=sdCalTZ,sdErr minutely hourly daily monthly weekly yearly annually anually quarterly biannually bi-annually semiannually semi-annually
+syn case match
+" numeric components and separators, shared by the date and time fields
+syn match sdCalNum  contained /\d\+\%(\.\d\+\)\=\|\*/
+syn match sdCalSym  contained /\.\.\|[-~,:/]/
+" weekday list → date / time / timezone (date and time may both be omitted)
+syn match sdCalWeekdays contained /\s*\a[[:alpha:],.-]*/ contains=sdCalWeekday,sdCalSym,sdErr nextgroup=sdCalDate,sdCalTime,sdCalTZ,sdErr
+" date → time / timezone
+syn match sdCalDate contained /\s*[0-9*][0-9*,./]*\%([-~][0-9*,./]\+\)\{1,2}/ contains=sdCalNum,sdCalSym nextgroup=sdCalTime,sdCalTZ,sdErr
+" time → timezone
+syn match sdCalTime contained /\s*[0-9*][0-9*,./]*\%(:[0-9*,./]\+\)\{1,2}/ contains=sdCalNum,sdCalSym nextgroup=sdCalTZ,sdErr
+" timezone (terminal)
+syn match sdCalTZ   contained /\s*\<\a[A-Za-z0-9_+-]*\%(\/[A-Za-z0-9_+-]\+\)*/ nextgroup=sdErr
 
 " Calendar special expressions, from systemd.time(7):
 "
@@ -638,8 +657,7 @@ syn region sdTimerBlock matchgroup=sdHeader start=/^\[Timer\]/ end=/^\[/me=e-2 c
 syn match sdTimerKey contained /^On\%(Active\|Boot\|Startup\|UnitActive\|UnitInactive\)Sec=/ nextgroup=sdDuration,sdErr
 syn match sdTimerKey contained /^\%(AccuracySec\|RandomizedDelaySec\|RandomizedOffsetSec\)=/ nextgroup=sdDuration,sdErr
 syn match sdTimerKey contained /^\%(Persistent\|WakeSystem\|RemainAfterElapse\|FixedRandomDelay\|DeferReactivation\|OnClockChange\|OnTimezoneChange\)=/ nextgroup=sdBool,sdErr
-" TODO: sdCalendar parsing is incomplete — the match is a rough approximation
-syn match sdTimerKey contained /^OnCalendar=/ nextgroup=sdCalendar
+syn match sdTimerKey contained /^OnCalendar=/ nextgroup=sdCalShorthand,sdCalWeekdays,sdCalDate,sdCalTime,sdErr skipwhite
 syn match sdTimerKey contained /^Unit=/ nextgroup=sdUnitList
 
 " --- [Automount] ---
@@ -726,6 +744,10 @@ hi def link sdDuration          sdValue
 hi def link sdPercent           sdValue
 hi def link sdInfinity          sdValue
 hi def link sdDocUri            sdValue
+hi def link sdCalWeekday        sdValue
+hi def link sdCalShorthand      sdValue
+hi def link sdCalNum            sdValue
+hi def link sdCalTZ             sdValue
 hi def link sdDatasize          sdValue
 hi def link sdVirtType          sdValue
 hi def link sdServiceType       sdValue
@@ -793,6 +815,7 @@ hi def link sdFilesystemGroup   sdValue
 " --- Symbol/flag links ---
 hi def link sdExecFlag          sdSymbol
 hi def link sdConditionFlag     sdSymbol
+hi def link sdCalSym            sdSymbol
 hi def link sdColonPathSep      sdSymbol
 hi def link sdDashFlag          sdSymbol
 hi def link sdInvertFlag        sdSymbol
