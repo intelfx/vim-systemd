@@ -63,14 +63,15 @@ syn case ignore
 " Matched (not a keyword) because `syn iskeyword` includes '-', which would
 " make Vim treat the backwards-compat range form 'Mon-Fri' as a single token.
 " The trailing \a\@! anchors the name so e.g. 'Mont' or 'Monday' are handled.
-syn match   sdCalWeekday   contained /\%(mon\%(day\)\=\|tue\%(sday\)\=\|wed\%(nesday\)\=\|thu\%(rsday\)\=\|fri\%(day\)\=\|sat\%(urday\)\=\|sun\%(day\)\=\)\a\@!/
+syn match   sdCalWeekday   contained nextgroup=sdCalWeekSep,sdErrItem /\%(mon\%(day\)\=\|tue\%(sday\)\=\|wed\%(nesday\)\=\|thu\%(rsday\)\=\|fri\%(day\)\=\|sat\%(urday\)\=\|sun\%(day\)\=\)\a\@!/
 syn keyword sdCalShorthand contained nextgroup=sdCalTZ,sdErr minutely hourly daily monthly weekly yearly annually anually quarterly biannually bi-annually semiannually semi-annually
 syn case match
 " numeric components and separators, shared by the date and time fields
 syn match sdCalNum  contained /\d\+\%(\.\d\+\)\=\|\*/
 syn match sdCalSym  contained /\.\.\|[-~,:/]/
 " weekday list → date / time / timezone (date and time may both be omitted)
-syn match sdCalWeekdays contained /\s*\a[[:alpha:],.-]*/ contains=sdCalWeekday,sdCalSym,sdErr nextgroup=sdCalDate,sdCalTime,sdCalTZ,sdErr
+syn match sdCalWeekdays contained /\s*\a[[:alpha:],.-]*/ contains=sdCalWeekday,sdErr nextgroup=sdCalDate,sdCalTime,sdCalTZ,sdErr
+syn match sdCalWeekSep  contained /\.\.\|[-,]/ nextgroup=sdCalWeekday,sdErrItem
 " date → time / timezone
 syn match sdCalDate contained /\s*[0-9*][0-9*,./]*\%([-~][0-9*,./]\+\)\{1,2}/ contains=sdCalNum,sdCalSym nextgroup=sdCalTime,sdCalTZ,sdErr
 " time → timezone
@@ -816,6 +817,7 @@ hi def link sdFilesystemGroup   sdValue
 hi def link sdExecFlag          sdSymbol
 hi def link sdConditionFlag     sdSymbol
 hi def link sdCalSym            sdSymbol
+hi def link sdCalWeekSep        sdSymbol
 hi def link sdColonPathSep      sdSymbol
 hi def link sdDashFlag          sdSymbol
 hi def link sdInvertFlag        sdSymbol
