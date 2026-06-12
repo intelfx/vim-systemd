@@ -355,7 +355,7 @@ syn keyword sdIOSchedPrio   contained nextgroup=sdErr 0 1 2 3 4 5 6 7
 syn keyword sdCPUSchedPol   contained nextgroup=sdErr other batch idle fifo rr
 syn keyword sdMountFlags    contained nextgroup=sdErr shared slave private
 syn keyword sdSecureBits    contained nextgroup=sdErr keep-caps keep-caps-locked noroot noroot-locked no-setuid-fixup no-setuid-fixup-locked
-syn match   sdUtmpIdentifier contained nextgroup=sdErr /\S{1,4}/
+syn match   sdUtmpIdentifier contained nextgroup=sdErr /\S\{1,4}/
 
 " Source: src/core/execute.h — ExecUtmpMode
 syn keyword sdUtmpMode      contained nextgroup=sdErr init login user
