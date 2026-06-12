@@ -12,7 +12,6 @@ endif
 
 syn case match
 syntax sync fromstart
-setlocal iskeyword+=-
 syn iskeyword @,48-57,_,192-255,-,@-@
 
 " === 1. Common syntactical elements ===
