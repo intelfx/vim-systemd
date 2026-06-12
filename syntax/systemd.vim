@@ -45,8 +45,8 @@ syn match sdByteVal  contained /\<\%(\d\|\d\d\|1\d\d\|2[0-4]\d\|25[0-5]\)\>/
 syn match sdDuration contained nextgroup=sdErr /\d\+/
 syn match sdDuration contained nextgroup=sdErr /\%(\d\+\s*\%(usec\|msec\|seconds\=\|minutes\=\|hours\=\|days\=\|weeks\=\|months\=\|years\=\|us\|ms\|sec\|min\|hr\|[smhdwMy]\)\s*\)\+/
 
-syn keyword sdCalendarDayNames Monday Tuesday Wednesday Thursday Friday Saturday Sunday Mon Tue Wed Thu Fri Sat Sun
-syn keyword sdCalendarInterval minutely hourly daily monthly weekly yearly quarterly semiannually
+syn keyword sdCalendarDayNames contained Monday Tuesday Wednesday Thursday Friday Saturday Sunday Mon Tue Wed Thu Fri Sat Sun
+syn keyword sdCalendarInterval contained minutely hourly daily monthly weekly yearly quarterly semiannually
 syn match sdCalendarDays contained /\i\+\,\=\|\i\+\.\.\i\+\,\=/ contains=sdCalendarDayNames,sdErr
 syn match sdCalendarRepeat contained /\/\d\+\%(\.\d\+\)\=/
 syn match sdCalendarSep  contained /[,~:-]\|../
