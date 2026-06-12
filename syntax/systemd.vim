@@ -714,6 +714,7 @@ hi def link sdByteVal           sdValue
 hi def link sdDuration          sdValue
 hi def link sdPercent           sdValue
 hi def link sdInfinity          sdValue
+hi def link sdDocUri            sdValue
 hi def link sdDatasize          sdValue
 hi def link sdVirtType          sdValue
 hi def link sdServiceType       sdValue
