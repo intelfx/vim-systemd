@@ -270,7 +270,7 @@ syn match sdExecKey contained /^\%(MountAPIVFS\|BindLogSockets\|PrivateMounts\|M
 syn match sdExecKey contained /^ProtectSystem=/ nextgroup=sdProtectSystem,sdBool,sdErr
 syn match sdExecKey contained /^ProtectHome=/ nextgroup=sdProtectHome,sdBool,sdErr
 syn match sdExecKey contained /^ProtectControlGroups=/ nextgroup=sdProtectCG,sdBool,sdErr
-syn match sdExecKey contained /^ProtectHostname=-\=/ contains=sdDashFlag nextgroup=sdProtectHostname,sdBool,sdErr
+syn match sdExecKey contained /^ProtectHostname=/ nextgroup=sdProtectHostname,sdBool,sdErr
 syn match sdExecKey contained /^PrivateTmp=/ nextgroup=sdPrivateTmp,sdBool,sdErr
 syn match sdExecKey contained /^PrivateUsers=/ nextgroup=sdPrivateUsers,sdBool,sdErr
 syn match sdExecKey contained /^\%(PrivatePIDs\|PrivateBPF\)=/ nextgroup=sdBool,sdErr
@@ -385,8 +385,10 @@ syn keyword sdProcSubset      contained nextgroup=sdErr all pid
 syn keyword sdKeyringMode     contained nextgroup=sdErr inherit private shared
 " Source: src/core/execute.h — ExecPreserveMode
 syn keyword sdPreserveMode    contained nextgroup=sdErr restart
-" Source: src/core/namespace.h — ProtectHostname
-syn keyword sdProtectHostname contained nextgroup=sdErr private
+" Source: src/core/namespace.c — protect_hostname_table[] (with boolean);
+"   the value may be followed by an optional ':HOSTNAME' suffix
+syn keyword sdProtectHostname contained nextgroup=sdHostnameSuffix,sdErr private
+syn match   sdHostnameSuffix  contained nextgroup=sdErr /:\S\+/
 " Source: src/core/namespace.h — ProtectControlGroups
 syn keyword sdProtectCG       contained nextgroup=sdErr private strict
 " Source: src/core/namespace.h — PrivateTmp
@@ -748,6 +750,7 @@ hi def link sdProcSubset        sdValue
 hi def link sdKeyringMode       sdValue
 hi def link sdPreserveMode      sdValue
 hi def link sdProtectHostname   sdValue
+hi def link sdHostnameSuffix    sdValue
 hi def link sdProtectCG         sdValue
 hi def link sdPrivateTmp        sdValue
 hi def link sdPrivateUsers      sdValue
